@@ -58,8 +58,8 @@ function(input, output, session) {
 
   onStop(function(){
     cat(sprintf("Session %s was closed\n", session$token))
-    dbDisconnect(userdb)
-    dbDisconnect(file_uploads)
+    dbDisconnect(users)
+    dbDisconnect(content)
 
   })
 }

@@ -71,18 +71,20 @@ upload_server <- function(id, userID){
       }else{
         file.copy(files$datapath, file.path(data_folder, files$name), copy.date = T)
 
-        dbExecute(file_uploads,
-                  str_glue(
-                  "INSERT INTO file_uploads (id, username, date, speedLimit, notes, location, files) VALUES (
-                  nextval('seq_file_upload_id'),
+        query <- str_glue(
+          "INSERT INTO file_uploads (username, date, speedlimit, notes, location, files) VALUES (
                   '{userID()}',
                   '{input$measurementDate}',
                   {input$speedLimit},
                   '{input$notes}',
-                  row({paste(input$map_click[c('lat', 'lng')], collapse=', ')}),
-                  ['{paste(file.path(data_folder, files$name), collapse='\\', \\'')}']
+                  point({paste(input$map_click[c('lat', 'lng')], collapse=', ')}),
+                  ARRAY['{paste(file.path(data_folder, files$name), collapse='\\', \\'')}']
                   )"
-        ))
+        )
+
+        cat(query)
+
+        dbExecute(content, query)
 
         showNotification("Dateien wurden hochgeladen")
 
