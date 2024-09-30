@@ -1,62 +1,94 @@
-output$map <- renderLeaflet({
-  leaflet() %>%
-    addTiles() %>%
-    setView(lat = 51.759617, lng = 14.324609, zoom = 12)
-})
+upload_UI <- function(id, settings=NULL){
+  ns <- NS(id)
+  list(
+    fluidRow(
+      column(4,
+             fileInput(ns("files"), "Dateien für den Upload", buttonLabel = "Auswählen", multiple = TRUE, accept = c(".bin", ".csv", ".png", ".jpg", ".jpeg"),placeholder = "Dateien zum hochladen"),
+             tableOutput(ns("file_confirmation")),
+             fileInput(ns("picture"), "Photo aufnehmen", capture = "environment", accept="image/*"),
+             numericInput(ns("speedLimit"), "Geschwindigkeitsbegrenzung", value = NA, min = 10, max=100, step = 10),
+             textAreaInput(ns("notes"), "Notizen zur Messstelle", placeholder = "Schreibe uns wenn es an dieser Messstelle etwas besonderes gibt", rows = 6, resize="vertical"),
+             dateInput(ns("measurementDate"), label = "Datum der Messung", value = Sys.Date(), max=Sys.Date(), language="de"),
+             textOutput(ns("selectedLocation"))
+      ),
+      column(8,
+             leafletOutput(ns("map"), height = 400)
+      )
+    ),
+    fluidRow(class="mt-3",
+             column(12, class="mt-3",
+                    actionButton(ns("start_upload"), "upload", class="btn-primary btn-lg btn-block mt-10 mb-10")
+             )
+    )
+  )
+}
 
-observeEvent(input$map_click, {
-  click <- input$map_click
-  leafletProxy("map", session) %>%
-    clearMarkers() %>%
-    addMarkers(lng = click$lng, lat = click$lat)
 
-  output$selectedLocation <- renderText({
-    paste("Ausgewählter Standort: ", click$lng, ", ", click$lat)
+upload_server <- function(id, userID){
+  moduleServer(id, function(input, output, session){
+    ns = session$ns
+
+    output$map <- renderLeaflet({
+      leaflet() %>%
+        addTiles() %>%
+        setView(lat = 51.759617, lng = 14.324609, zoom = 12)
+    })
+
+    observeEvent(input$map_click, {
+      click <- input$map_click
+      leafletProxy("map", session) %>%
+        clearMarkers() %>%
+        addMarkers(lng = click$lng, lat = click$lat)
+
+      output$selectedLocation <- renderText({
+        paste("Ausgewählter Standort: ", click$lng, ", ", click$lat)
+      })
+    })
+
+
+
+
+    output$file_confirmation <- renderTable({
+      req(input$files)
+      files <- input$files %>%
+        mutate(size = as.character(fs::fs_bytes(size))) %>%
+        mutate(filetype= str_extract(name, "\\.[a-z]+$")) %>%
+        select(name, size, filetype)
+
+    })
+
+    observeEvent(input$start_upload, {
+      files = input$files
+      user_folder <-  file.path("./uploads", userID())
+      if(!dir.exists(user_folder)) dir.create(user_folder)
+      data_folder <- file.path(user_folder, input$measurementDate)
+      if(!dir.exists(data_folder)) dir.create(data_folder)
+      existing_files <- files[file.exists(file.path(data_folder, files$name)),]
+
+      if(nrow(existing_files)>0){
+        showNotification(paste("Die folgenden Dateien liegen schon vor: ", paste(existing_files$name, collapse = ", ")))
+        req(F)
+      }else{
+        file.copy(files$datapath, file.path(data_folder, files$name), copy.date = T)
+
+        dbExecute(file_uploads,
+                  str_glue(
+                  "INSERT INTO file_uploads (id, username, date, speedLimit, notes, location, files) VALUES (
+                  nextval('seq_file_upload_id'),
+                  '{userID()}',
+                  '{input$measurementDate}',
+                  {input$speedLimit},
+                  '{input$notes}',
+                  row({paste(input$map_click[c('lat', 'lng')], collapse=', ')}),
+                  ['{paste(file.path(data_folder, files$name), collapse='\\', \\'')}']
+                  )"
+        ))
+
+        showNotification("Dateien wurden hochgeladen")
+
+      }
+
+
+    })
   })
-})
-
-
-
-
-output$file_confirmation <- renderTable({
-  req(input$files)
-  files <- input$files %>%
-    mutate(size = as.character(fs::fs_bytes(size))) %>%
-    mutate(filetype= str_extract(name, "\\.[a-z]+$")) %>%
-    select(name, size, filetype)
-
-})
-
-observeEvent(input$start_upload, {
-  files = input$files
-  user_folder <-  file.path("./uploads", userID())
-  if(!dir.exists(user_folder)) dir.create(user_folder)
-  data_folder <- file.path(user_folder, input$measurementDate)
-  if(!dir.exists(data_folder)) dir.create(data_folder)
-  existing_files <- files[file.exists(file.path(data_folder, files$name)),]
-
-  if(nrow(existing_files)>0){
-    showNotification(paste("Die folgenden Dateien liegen schon vor: ", paste(existing_files$name, collapse = ", ")))
-    req(F)
-  }else{
-    file.copy(files$datapath, file.path(data_folder, files$name), copy.date = T)
-
-    dbExecute(file_uploads,
-              str_glue(
-              "INSERT INTO file_uploads (id, username, date, speedLimit, notes, location, files) VALUES (
-              nextval('seq_file_upload_id'),
-              '{userID()}',
-              '{input$measurementDate}',
-              {input$speedLimit},
-              '{input$notes}',
-              row({paste(input$map_click[c('lat', 'lng')], collapse=', ')}),
-              ['{paste(file.path(data_folder, files$name), collapse='\\', \\'')}']
-              )"
-    ))
-
-    showNotification("Dateien wurden hochgeladen")
-
-  }
-
-
-})
+}

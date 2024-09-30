@@ -53,7 +53,8 @@ function(input, output, session) {
     userID()
   })
 
-  source("upload_data.R", local=T)
+
+  upload_server("upload_form", userID)
 
   onStop(function(){
     cat(sprintf("Session %s was closed\n", session$token))

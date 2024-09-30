@@ -8,6 +8,9 @@ library(dbplyr)
 library(tidyr)
 library(purrr)
 
+source("upload_data_ui.R")
+source("upload_data.R")
+
 options(shiny.maxRequestSize=100*1024^2)
 
 if(file.exists("./users.db")){
