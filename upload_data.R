@@ -12,7 +12,7 @@ upload_UI <- function(id, settings=NULL){
              textOutput(ns("selectedLocation"))
       ),
       column(8,
-             leafletOutput(ns("map"), height = 400)
+             maplibreOutput(ns("map"), height = 400)
       )
     ),
     fluidRow(class="mt-3",
@@ -28,21 +28,31 @@ upload_server <- function(id, userID){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
-    output$map <- renderLeaflet({
-      leaflet() %>%
-        addTiles() %>%
-        setView(lat = 51.759617, lng = 14.324609, zoom = 12)
+    output$map <- renderMaplibre({
+      maplibre("https://tiles.versatiles.org/assets/styles/colorful.json", center=c(14.324609,51.759617), zoom=12)
     })
 
-    observeEvent(input$map_click, {
-      click <- input$map_click
-      leafletProxy("map", session) %>%
-        clearMarkers() %>%
-        addMarkers(lng = click$lng, lat = click$lat)
+    sensor_location <- reactiveVal()
 
-      output$selectedLocation <- renderText({
-        paste("Ausgewählter Standort: ", click$lng, ", ", click$lat)
-      })
+    observeEvent(input$map_click, {
+      click <- input$map_feature_click
+
+      maplibre_proxy("map", session) %>%
+        clear_markers() %>%
+        add_markers(marker_id = "sensor_location", data=c(click$lng, click$lat), draggable=T)
+
+      sensor_location(click[c("lng", "lat")])
+    })
+
+    output$selectedLocation <- renderText({
+      location <- req(sensor_location())
+      paste("Ausgewählter Standort: ", location$lng, ", ", location$lat, location$properties$name_de)
+    })
+
+    observeEvent(input$map_marker_sensor_location,{
+      marker <- input$map_marker_sensor_location
+
+      sensor_location(marker[c("lng", "lat")])
     })
 
 
