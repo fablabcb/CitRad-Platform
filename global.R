@@ -8,6 +8,7 @@ library(dbplyr)
 library(tidyr)
 library(purrr)
 library(RPostgreSQL)
+library(sf)
 
 
 source("upload_data.R")

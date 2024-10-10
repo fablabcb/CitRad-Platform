@@ -9,11 +9,12 @@ upload_UI <- function(id, settings=NULL){
              numericInput(ns("speedLimit"), "Geschwindigkeitsbegrenzung", value = NA, min = 10, max=100, step = 10),
              textAreaInput(ns("notes"), "Notizen zur Messstelle", placeholder = "Schreibe uns wenn es an dieser Messstelle etwas besonderes gibt", rows = 6, resize="vertical"),
              dateInput(ns("measurementDate"), label = "Datum der Messung", value = Sys.Date(), max=Sys.Date(), language="de"),
+             checkboxInput(ns("reverse"), "reverse", value=FALSE),
              textOutput(ns("selectedLocation")),
-             textOutput(ns("zoom"))
+             verbatimTextOutput(ns("zoom"))
       ),
       column(8,
-             maplibreOutput(ns("map"), height = 400)
+             maplibreOutput(ns("map"), height = 600)
       )
     ),
     fluidRow(class="mt-3",
@@ -41,10 +42,13 @@ upload_server <- function(id, userID){
         add_geocoder_control(collapsed = T) %>%
         add_line_layer(id = "streets", source = splitted_streets, before_id = "label-street-pedestrian", line_opacity = 1, line_width = interpolate(property = "zoom", type = list("exponential", 2), values = c(12,19), stops = c(1,60)), line_color = match_expr(
           "maxspeed",
-          values = c("30", "50", "60", "100"),
-          stops = c("#1f78b4", "#33a02c","#e31a1c", "#ff7f00"),
-          default = "gray"
-        ), tooltip = "name", hover_options = list(line_width=4)) %>%
+            values = c("30", "50", "60", "100"),
+            stops = c("#1f78b4", "#33a02c","#e31a1c", "#ff7f00"),
+            default = "gray"
+          ),
+          popup = c("name", "maxspeed"),
+          tooltip = "name", hover_options = list(line_width=4)
+        ) %>%
         add_legend(legend_title = "max speed", type="categorical",
                    values = c("30", "50", "60", "100"),
                    colors = c("#1f78b4", "#33a02c", "#e31a1c", "#ff7f00"))
@@ -59,16 +63,48 @@ upload_server <- function(id, userID){
 
     sensor_location <- reactiveVal()
 
-    observeEvent(input$map_click, {
-      click <- input$map_feature_click
+    observe({
+      click <- req(input$map_click)
+      location <- st_as_sf(data.frame(lon=click$lng, lat=click$lat), coords=c("lon", "lat"), crs = 4326)
 
-      maplibre_proxy("map", session) %>%
+      nearest_street <- splitted_streets[which.min(st_distance(splitted_streets, location)),] %>%
+        mutate(icon="music")
+
+      if(input$reverse){
+        nearest_street <- nearest_street %>% st_reverse()
+      }
+      #browser()
+
+      map <- maplibre_proxy("map", session) %>%
         set_paint_property(layer="label-street-residential", name="text-color", value="#000000") %>%
         clear_markers() %>%
-        add_markers(marker_id = "sensor_location", data=c(click$lng, click$lat), draggable=T)
+        #add_markers(marker_id = "sensor_location", data=c(click$lng, click$lat), draggable=T) %>%
+        clear_layer("nearest_street") %>%
+        add_line_layer("nearest_street", source = nearest_street, line_color = "yellow", line_width = interpolate(property = "zoom", type = list("exponential", 2), values = c(12,19), stops = c(1,60))) %>%
+        #add_symbol_layer("nearest_street_direction", source = location, text_field = "name", icon_allow_overlap = TRUE) %>%
+        clear_layer("nearest_street_symbol") %>%
+        add_symbol_layer(
+          id = "nearest_street_symbol",
+          source = nearest_street,
+          #text_field = get_column("name"),
+          text_justify = "left",
+          icon_image = "marking-arrow",
+          icon_rotate = 90,
+          icon_size = interpolate(property = "zoom", type = list("exponential", 2), values = c(12,19), stops = c(.16,10)),
+          symbol_spacing = 100,
+          #icon_padding = 1,
+          symbol_placement = "line",
+          text_font = list("noto_sans_regular"),
+          text_keep_upright = FALSE,
+          icon_allow_overlap = TRUE,
+          tooltip = "icon",
+        ) %>%
+        set_layout_property("nearest_street", "line-join", "round") %>%
+        set_layout_property("nearest_street", "line-cap",  "round")
 
       sensor_location(click[c("lng", "lat")])
     })
+
 
     output$selectedLocation <- renderText({
       location <- req(sensor_location())
@@ -78,12 +114,13 @@ upload_server <- function(id, userID){
     observeEvent(input$map_marker_sensor_location,{
       marker <- input$map_marker_sensor_location
 
+
       sensor_location(marker[c("lng", "lat")])
     })
 
 
-    output$zoom <- renderText({
-      input$map_zoom
+    output$zoom <- renderPrint({
+      input$zoom
     })
 
     output$file_confirmation <- renderTable({
