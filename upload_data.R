@@ -31,6 +31,7 @@ upload_server <- function(id, userID){
 
     output$map <- renderMaplibre({
       # other map styles: colorful, graybeard
+      # https://github.com/versatiles-org/versatiles-style/releases/tag/v4.4.1
       maplibre("./neutrino.de.json",
                center=c(14.324609,51.759617), zoom=12, maxzoom=19, minzoom=12,
 
@@ -52,21 +53,6 @@ upload_server <- function(id, userID){
     observeEvent(input$map_zoom, once = T, {
 
       maplibre_proxy("map", session) %>%
-        set_paint_property("label-street-tertiary",     "text-color", "#000000") %>%
-        set_paint_property("label-street-secondary",    "text-color", "#000000") %>%
-        set_paint_property("label-street-primary",      "text-color", "#000000") %>%
-        set_paint_property("label-street-residential",  "text-color", "#000000") %>%
-        set_paint_property("label-street-unclassified", "text-color", "#000000") %>%
-        set_paint_property("label-place-neighbourhood", "text-color", "#000000") %>%
-        set_paint_property("label-place-quarter",       "text-color", "#000000") %>%
-        set_paint_property("label-place-suburb",        "text-color", "#000000") %>%
-        set_paint_property("label-place-hamlet",        "text-color", "#000000") %>%
-        set_paint_property("label-place-village",       "text-color", "#000000") %>%
-        set_paint_property("label-place-town",          "text-color", "#000000") %>%
-        set_paint_property("label-place-city",          "text-color", "#000000") %>%
-        set_paint_property("label-place-statecapital",  "text-color", "#000000") %>%
-        set_paint_property("label-place-capital",       "text-color", "#000000") %>%
-        set_paint_property("street_labels",             "text-color", "#000000") %>%
         set_layout_property("streets", "line-join", "round") %>%
         set_layout_property("streets", "line-cap",  "round")
     })
