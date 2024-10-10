@@ -31,7 +31,7 @@ upload_server <- function(id, userID){
 
     output$map <- renderMaplibre({
       # other map styles: colorful, graybeard
-      maplibre("https://tiles.versatiles.org/assets/styles/neutrino.json",
+      maplibre("./neutrino.de.json",
                center=c(14.324609,51.759617), zoom=12, maxzoom=19, minzoom=12,
 
                ) %>%
