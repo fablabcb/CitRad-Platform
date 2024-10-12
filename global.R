@@ -20,3 +20,10 @@ options(shiny.maxRequestSize=100*1024^2)
 drv <- dbDriver("PostgreSQL")
 users <- dbConnect(drv, dbname = "users", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
 content <- dbConnect(drv, dbname = "content", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
+
+azimuth_to_direction <- function(azimuth) {
+  directions <- c("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+                  "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW")
+  index <- round(azimuth / 22.5) %% 16 + 1
+  return(directions[index])
+}
