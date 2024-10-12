@@ -49,9 +49,10 @@ upload_server <- function(id, userID){
           #popup = c("name", "maxspeed"),
           #tooltip = "name", hover_options = list(line_width=4)
         ) %>%
-        add_legend(legend_title = "max speed", type="categorical",
+        add_legend(position="bottom-left", legend_title = "max speed", type="categorical",
                    values = c("30", "50", "60", "100"),
-                   colors = c("#1f78b4", "#33a02c", "#e31a1c", "#ff7f00"))
+                   colors = c("#1f78b4", "#33a02c", "#e31a1c", "#ff7f00")) %>%
+        add_layers_control(layers=list("streets", "Luftbild"), collapsible = TRUE)
     })
 
     observeEvent(input$map_zoom, once = T, {

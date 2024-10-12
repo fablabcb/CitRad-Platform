@@ -8,9 +8,18 @@
 	"glyphs": "https://tiles.versatiles.org/assets/fonts/{fontstack}/{range}.pbf",
 	"sprite": "https://tiles.versatiles.org/assets/sprites/sprites",
 	"sources": {
+    "raster-tiles": {
+        "type": "raster",
+        "tiles": [
+            "https://isk.geobasis-bb.de/mapproxy/dop20c/service/wms?REQUEST=GetMap&SERVICE=wms&VERSION=1.3.0&FORMAT=image/png&LAYERS=bebb_dop20c&CRS=EPSG:3857&width=1335&height=709&bbox={bbox-epsg-3857}&styles="
+        ],
+        "tileSize": 256,
+        "attribution":
+          "© <a href=\"https://geobasis-bb.de\" target=\"_blank\">GeoBasis-DE/LGB</a>, <a href=\"https://www.govdata.de/dl-de/by-2-0\" target=\"_blank\">dl-de/by-2-0</a>"
+    },
 		"versatiles-shortbread": {
 			"tilejson": "3.0.0",
-			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors",
 			"tiles": [
 				"https://tiles.versatiles.org/tiles/osm/{z}/{x}/{y}"
 			],
@@ -2754,6 +2763,19 @@
 				"line-join": "round"
 			}
 		},
+    {
+        "id": "Luftbild",
+        "type": "raster",
+        "source": "raster-tiles",
+        "minzoom": 0,
+        "maxzoom": 22,
+        "layout": {
+          "visibility": "visible"
+        },
+        "paint": {
+          "raster-opacity": 1
+        }
+    },
 		{
 			"source": "versatiles-shortbread",
 			"id": "label-motorway-shield",
@@ -2962,13 +2984,13 @@
 				"text-field": "{name_de}",
 				"text-font": [ "noto_sans_regular" ],
 				"text-size": { "stops": [ [ 14, 12 ] ] },
-				"text-transform": "uppercase"
+				"text-transform": "none"
 			},
 			"paint": {
 				"icon-color": "#cea0c7",
 				"text-color": "#000000",
 				"text-halo-color": "#ffffff",
-				"text-halo-width": 0.1,
+				"text-halo-width": 3,
 				"text-halo-blur": 1
 			},
 			"minzoom": 14
@@ -2983,13 +3005,13 @@
 				"text-field": "{name_de}",
 				"text-font": [ "noto_sans_regular" ],
 				"text-size": { "stops": [ [ 13, 13 ] ] },
-				"text-transform": "uppercase"
+				"text-transform": "none"
 			},
 			"paint": {
 				"icon-color": "#cea0bf",
 				"text-color": "#000000",
 				"text-halo-color": "#ffffff",
-				"text-halo-width": 0.1,
+				"text-halo-width": 3,
 				"text-halo-blur": 1
 			},
 			"minzoom": 13
@@ -3004,13 +3026,13 @@
 				"text-field": "{name_de}",
 				"text-font": [ "noto_sans_regular" ],
 				"text-size": { "stops": [ [ 11, 11 ], [ 13, 14 ] ] },
-				"text-transform": "uppercase"
+				"text-transform": "none"
 			},
 			"paint": {
 				"icon-color": "#cea0b7",
 				"text-color": "#000000",
 				"text-halo-color": "#ffffff",
-				"text-halo-width": 0.1,
+				"text-halo-width": 3,
 				"text-halo-blur": 1
 			},
 			"minzoom": 11
@@ -3030,8 +3052,8 @@
 				"icon-color": "#cea0ac",
 				"text-color": "#000000",
 				"text-halo-color": "#ffffff",
-				"text-halo-width": 0.1,
-				"text-halo-blur": 1
+				"text-halo-width": 3,
+				"text-halo-blur": 3
 			},
 			"minzoom": 10
 		},
@@ -3050,7 +3072,7 @@
 				"icon-color": "#cea0ac",
 				"text-color": "#000000",
 				"text-halo-color": "#ffffff",
-				"text-halo-width": 0.1,
+				"text-halo-width": 1,
 				"text-halo-blur": 1
 			},
 			"minzoom": 9
@@ -3070,7 +3092,7 @@
 				"icon-color": "#cea0ac",
 				"text-color": "#000000",
 				"text-halo-color": "#ffffff",
-				"text-halo-width": 0.1,
+				"text-halo-width": 1,
 				"text-halo-blur": 1
 			},
 			"minzoom": 8
@@ -3105,14 +3127,14 @@
 			"layout": {
 				"text-field": "{name_de}",
 				"text-font": [ "noto_sans_regular" ],
-				"text-size": { "stops": [ [ 7, 11 ], [ 10, 14 ] ] }
+				"text-size": { "stops": [ [ 7, 14 ], [ 10, 20 ] ] }
 			},
 			"paint": {
 				"icon-color": "#cea0ac",
 				"text-color": "#000000",
 				"text-halo-color": "#ffffff",
-				"text-halo-width": 0.1,
-				"text-halo-blur": 1
+				"text-halo-width": 2,
+				"text-halo-blur": 0
 			},
 			"minzoom": 7
 		},
@@ -3131,7 +3153,7 @@
 				"icon-color": "#cea0ac",
 				"text-color": "#000000",
 				"text-halo-color": "#ffffff",
-				"text-halo-width": 0.1,
+				"text-halo-width": 1,
 				"text-halo-blur": 1
 			},
 			"minzoom": 6
@@ -3151,7 +3173,7 @@
 				"icon-color": "#cea0ac",
 				"text-color": "#000000",
 				"text-halo-color": "#ffffff",
-				"text-halo-width": 0.1,
+				"text-halo-width": 1,
 				"text-halo-blur": 1
 			},
 			"minzoom": 5
