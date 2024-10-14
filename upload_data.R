@@ -64,6 +64,7 @@ upload_server <- function(id, userID){
 
     sensor_location <- reactiveVal()
     sensor_direction <- reactiveVal()
+    nearest_street <- reactiveVal()
 
     observe({
       click <- req(input$map_click)
@@ -75,6 +76,8 @@ upload_server <- function(id, userID){
       if(input$reverse){
         nearest_street <- nearest_street %>% st_reverse()
       }
+
+      nearest_street(nearest_street) # save in reactiveVal
 
       nearest_street_points <- st_cast(nearest_street, "POINT")
       nearest_points <-st_nearest_points(location, nearest_street) %>% st_as_sf
@@ -128,27 +131,26 @@ upload_server <- function(id, userID){
         set_layout_property("nearest_points", "line-join", "round") %>%
         set_layout_property("nearest_points", "line-cap",  "round")
 
-      sensor_direction(street_azimuth)
-      sensor_location(click[c("lng", "lat")])
+      sensor_direction(round(street_azimuth%%360))
+      sensor_location(location)
     })
 
 
     output$selectedLocation <- renderText({
       location <- req(sensor_location())
-      paste(round(location$lng, 5), ", ", round(location$lat,5))
+      message(str(location))
+      paste(paste(round(st_coordinates(location),5), collapse = ", "))
     })
 
     output$direction <- renderText({
       req(sensor_direction())
-      paste0(azimuth_to_direction(sensor_direction()), " (", round(sensor_direction()%%360), "° von Nord)")
+      paste0(azimuth_to_direction(sensor_direction()), " (", sensor_direction(), "° von Nord)")
     })
 
-    observeEvent(input$map_marker_sensor_location,{
-      marker <- input$map_marker_sensor_location
-
-
-      sensor_location(marker[c("lng", "lat")])
-    })
+    # observeEvent(input$map_marker_sensor_location,{
+    #   marker <- input$map_marker_sensor_location
+    #   sensor_location(marker[c("lng", "lat")])
+    # })
 
 
     output$file_confirmation <- renderTable({
@@ -168,30 +170,43 @@ upload_server <- function(id, userID){
       if(!dir.exists(data_folder)) dir.create(data_folder)
       existing_files <- files[file.exists(file.path(data_folder, files$name)),]
 
-      if(nrow(existing_files)>0){
-        showNotification(paste("Die folgenden Dateien liegen schon vor: ", paste(existing_files$name, collapse = ", ")))
-        req(F)
-      }else{
+      # if(nrow(existing_files)>0){
+      #   showNotification(paste("Die folgenden Dateien liegen schon vor: ", paste(existing_files$name, collapse = ", ")))
+      #   req(F)
+      # }else{
         file.copy(files$datapath, file.path(data_folder, files$name), copy.date = T)
 
-        query <- str_glue(
-          "INSERT INTO file_uploads (username, date, speedlimit, notes, location, files) VALUES (
+        nearest_street_geom = unlist(lapply(sf::st_as_binary(sf::st_geometry(nearest_street())), function(x) {
+          paste(x, collapse = "")
+        }))
+        location_geom = unlist(lapply(sf::st_as_binary(sf::st_geometry(sensor_location())), function(x) {
+          paste(x, collapse = "")
+        }))
+
+        query <- str_glue(.na="DEFAULT",
+          "INSERT INTO file_uploads (username, date, name, \"name:hsb\", speedlimit, osm_speedlimit, oneway, lanes, direction, notes, files, location, street_geom) VALUES (
                   '{userID()}',
                   '{input$measurementDate}',
+                  '{nearest_street()$name}',
+                  '{nearest_street()$`name:hsb`}',
                   {input$speedLimit},
+                  {as.integer(nearest_street()$maxspeed)},
+                  {as.logical(nearest_street()$oneway)},
+                  {as.integer(nearest_street()$lanes)},
+                  {sensor_direction()},
                   '{input$notes}',
-                  point({paste(input$map_click[c('lat', 'lng')], collapse=', ')}),
-                  ARRAY['{paste(file.path(data_folder, files$name), collapse='\\', \\'')}']
+                  ARRAY['{paste(file.path(data_folder, files$name), collapse='\\', \\'')}'],
+                  ST_SetSRID('{location_geom}'::geometry,4326),
+                  ST_SetSRID('{nearest_street_geom}'::geometry,4326)
                   )"
         )
-
         cat(query)
 
         dbExecute(content, query)
 
         showNotification("Dateien wurden hochgeladen")
 
-      }
+      # }
 
 
     })
