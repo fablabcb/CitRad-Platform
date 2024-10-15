@@ -13,3 +13,47 @@
 .mb-10{
   margin-bottom: 10px;
 }
+
+.maplibregl {
+  border-radius: 10px;
+  border: solid #ccc 1px;
+}
+
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  column-gap: 20px;
+  flex-grow: 1;
+}
+.flex-confirm-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  column-gap: 20px;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: calc(100vh - 70px);
+}
+
+.flex-sidebar {
+  width: 300px;
+  flex-basis: 300px;
+  flex-shrink: 1;
+}
+
+.flex-main-panel {
+  flex-grow: 1;
+  flex-basis: 0;
+  min-width: 500px;
+  min-height: 500px;
+}
+.flex-confirm{
+  width: 100%;
+}
+
+@media (max-width: 500px) {
+  .flex-main-panel {
+    min-width: 100%;
+  }
+}
