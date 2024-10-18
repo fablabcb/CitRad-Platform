@@ -54,7 +54,7 @@ function(input, output, session) {
   })
 
 
-  upload_server("upload_form", userID)
+  add_location_server("location_form", userID)
 
   onStop(function(){
     cat(sprintf("Session %s was closed\n", session$token))

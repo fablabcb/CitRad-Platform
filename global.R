@@ -9,9 +9,10 @@ library(tidyr)
 library(purrr)
 library(RPostgreSQL)
 library(sf)
+library(lwgeom)
 
 
-source("upload_data.R")
+source("add_location.R")
 load("osmdata_splitted.RData")
 
 options(shiny.maxRequestSize=100*1024^2)
