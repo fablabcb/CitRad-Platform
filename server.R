@@ -18,7 +18,7 @@ function(input, output, session) {
 
 
   userID <- reactive({
-    return("admin")
+    return("nanu")
     req(loginForm())
     req(input$login)
     shiny::isolate({
@@ -55,6 +55,7 @@ function(input, output, session) {
 
 
   add_location_server("location_form", userID)
+  show_locations_server("show_locations", userID)
 
   onStop(function(){
     cat(sprintf("Session %s was closed\n", session$token))
