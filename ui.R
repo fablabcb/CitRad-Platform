@@ -1,15 +1,23 @@
 library(shiny)
+#page_navbar
+page_sidebar(title="CitRad", fillable_mobile = T,
 
-navbarPage("CitRad",selected = "Sensor-Standorte",
-           tabPanel("neuer Standort",
-              add_location_UI("location_form")
-           ),
-           tabPanel("Sensor-Standorte",
-              show_locations_UI("show_locations")
-           ),
-           tabPanel("data view"),
-           textOutput("userIDtext"),
-           tags$head(
-             tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css")
-           )
+             sidebar = sidebar(width=300,
+                               textOutput("map_marker"),
+                               accordion(multiple=F,open = "Standorte anzeigen",
+                                         accordion_panel(
+                                           "Standorte anzeigen",
+                                           UI_show_locations("show_locations")
+                                         ),
+                                         accordion_panel(
+                                           "Standort hinzufügen",
+                                           uiOutput("add_location_UI")
+                                         )
+                               )
+             ),
+             maplibreOutput("map", height = "calc(100vh - 40px - 16px - 48px)"),
+
+             tags$head(
+               tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css")
+             )
 )

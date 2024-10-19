@@ -1,62 +1,10 @@
-add_location_UI <- function(id, settings=NULL){
-  ns <- NS(id)
-  list(
-    div(class="flex-confirm-container",
-      div(class="flex-container",
-        div(class="flex-sidebar",
-               numericInput(ns("speedLimit"), "Geschwindigkeitsbegrenzung", value = 30, min = 10, max=100, step = 10),
-               textAreaInput(ns("notes"), "Notizen zur Messstelle", placeholder = "Schreibe uns wenn es an dieser Messstelle etwas besonderes gibt", rows = 6, resize="vertical"),
-               checkboxInput(ns("reverse"), "Fahrtrichtung umkehren", value=FALSE),
-               p("Standort: ", textOutput(ns("selectedLocation"), inline = T)),
-               p(textOutput(ns("selected_street"), inline=T)),
-               p(textOutput(ns("street_specifics"), inline=T)),
-               uiOutput(ns("direction")),
-        ),
-        div(class="flex-main-panel",
-               maplibreOutput(ns("map"), height = "100%")
-        )
-      ),
-      div(class="flex-confirm",
-          actionButton(ns("save_location"), "Standort speichern", class="btn-primary btn-lg btn-block mt-10 mb-10")
-      )
-    )
-  )
-}
-
-
-add_location_server <- function(id, userID){
+SERVER_add_location <- function(id, userID, map_click, map_proxy){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
-
-    output$map <- renderMaplibre({
-      # other map styles: colorful, graybeard
-      # https://github.com/versatiles-org/versatiles-style/releases/tag/v4.4.1
-      maplibre("./neutrino.de.json",
-               center=c(14.324609,51.759617), zoom=12, maxzoom=19, minzoom=12,
-
-               ) %>%
-        add_navigation_control() %>%
-        add_fullscreen_control() %>%
-        add_geocoder_control(collapsed = T) %>%
-        add_line_layer(id = "streets", source = splitted_streets, before_id = "label-street-pedestrian", line_opacity = 1, line_width = interpolate(property = "zoom", type = list("exponential", 2), values = c(12,19), stops = c(1,60)), line_color = match_expr(
-          "maxspeed",
-            values = c("30", "50", "60", "100"),
-            stops = c("#1f78b4", "#33a02c","#e31a1c", "#ff7f00"),
-            default = "gray"
-          )
-          #popup = c("name", "maxspeed"),
-          #tooltip = "name", hover_options = list(line_width=4)
-        ) %>%
-        add_legend(position="bottom-left", legend_title = "max speed", type="categorical",
-                   values = c("30", "50", "60", "100"),
-                   colors = c("#1f78b4", "#33a02c", "#e31a1c", "#ff7f00")) %>%
-        add_layers_control(layers=list("streets", "Luftbild"), collapsible = TRUE)
-    })
-
     observeEvent(input$map_zoom, once = T, {
 
-      maplibre_proxy("map", session) %>%
+      map_proxy %>%
         set_layout_property("streets", "line-join", "round") %>%
         set_layout_property("streets", "line-cap",  "round")
     })
@@ -65,8 +13,22 @@ add_location_server <- function(id, userID){
     sensor_direction <- reactiveVal()
     nearest_street <- reactiveVal()
 
-    observe({
-      click <- req(input$map_click)
+    observeEvent(input$add_location, {
+      map_observer$resume()
+      UI(list(
+        p("Standort: ", textOutput(ns("selectedLocation"), inline = T)),
+        p(textOutput(ns("selected_street"), inline=T)),
+        p(textOutput(ns("street_specifics"), inline=T)),
+        uiOutput(ns("direction")),
+        checkboxInput(ns("reverse"), "Fahrtrichtung umkehren", value=FALSE),
+        actionButton(ns("save_location"), "Standort speichern", class="btn-primary btn-block mt-10 mb-10"),
+        actionButton(ns("cancel_location_save"), "Abbrechen")
+      ))
+    })
+
+    map_observer <- observe(suspended = T, {
+      click <- req(map_click())
+
       location <- st_as_sf(data.frame(lon=click$lng, lat=click$lat), coords=c("lon", "lat"), crs = 4326)
 
       nearest_street <- splitted_streets[st_nearest_feature(location, splitted_streets ),] %>%
@@ -97,7 +59,7 @@ add_location_server <- function(id, userID){
       }
       street_azimuth <- as.numeric(st_geod_azimuth(nearest_street_points[nearest_line_segment,]))/2/pi*360
 
-      map <- maplibre_proxy("map", session) %>%
+      map <- map_proxy() %>%
         set_paint_property(layer="label-street-residential", name="text-color", value="#000000") %>%
         clear_markers() %>%
         add_markers(marker_id = "sensor_location", data=c(click$lng, click$lat), draggable=F) %>%
@@ -196,6 +158,29 @@ add_location_server <- function(id, userID){
 
 
     observeEvent(input$save_location, {
+      showModal(modalDialog(
+        title="Standort speichern",
+        numericInput(ns("speedLimit"), "Geschwindigkeitsbegrenzung", value = 30, min = 10, max=100, step = 10, width = "100%"),
+        textAreaInput(ns("notes"), "Notizen zur Messstelle", placeholder = "Schreibe uns wenn es an dieser Messstelle etwas besonderes gibt", rows = 6, resize="vertical", width = "100%"),
+        footer = tagList(
+          actionButton(ns("cancel_location_save"), "Abbrechen"),
+          actionButton(ns("confirm_location_save"), "Speichern")
+        )
+      ))
+    })
+
+    observeEvent(input$cancel_location_save,{
+      removeModal()
+      map_observer$suspend()
+      map_proxy() %>%
+        clear_layer("nearest_street") %>%
+        clear_markers() %>%
+        clear_layer("nearest_points") %>%
+        clear_layer("nearest_street_symbol")
+      UI(actionButton(ns("add_location"), "Standort hinzufügen"))
+    })
+
+    observeEvent(input$confirm_location_save, {
 
         nearest_street_geom = unlist(lapply(sf::st_as_binary(sf::st_geometry(nearest_street())), function(x) {
           paste(x, collapse = "")
@@ -224,8 +209,21 @@ add_location_server <- function(id, userID){
         id = dbGetQuery(content, query)$id
 
         showNotification(str_glue("Standort wurde gespeichert mit id {id}"))
-
-
+        map_observer$suspend()
+        removeModal()
+        map_proxy() %>%
+          clear_layer("nearest_street") %>%
+          clear_markers() %>%
+          clear_layer("nearest_points") %>%
+          clear_layer("nearest_street_symbol")
+        UI(actionButton(ns("add_location"), "Standort hinzufügen"))
     })
+
+    UI <- reactiveVal(actionButton(ns("add_location"), "Standort hinzufügen"))
+
+    renderUI({
+      UI()
+    })
+
   })
 }

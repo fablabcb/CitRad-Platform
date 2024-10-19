@@ -1,3 +1,5 @@
+library(shiny)
+library(bslib)
 library(duckdb)
 library(bcrypt)
 library(duckdb)

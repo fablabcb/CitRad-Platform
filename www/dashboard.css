@@ -57,3 +57,23 @@
     min-width: 100%;
   }
 }
+
+
+@media (min-width: 576px) {
+  .modal {
+    --bs-modal-margin: 10px;
+  }
+}
+
+.modal-body, .modal-header, .modal-footer {
+	padding: .5rem 1.5rem;
+}
+
+.modal-body, .modal-header, .modal-footer {
+	padding: .5rem 1.5rem;
+	background-color: #e9efef;
+	background-image: var(--bs-gradient);
+}
+.modal-body, .modal-header {
+	border-bottom: 1px solid #a8c9c9;
+}
