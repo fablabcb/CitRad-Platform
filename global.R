@@ -17,6 +17,7 @@ library(rpostgis)
 
 source("add_location.R")
 source("show_locations.R")
+source("upload_data.R")
 load("osmdata_splitted.RData")
 
 options(shiny.maxRequestSize=100*1024^2)
