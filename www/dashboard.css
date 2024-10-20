@@ -71,8 +71,8 @@
 
 .modal-body, .modal-header, .modal-footer {
 	padding: .5rem 1.5rem;
-	background-color: #e9efef;
-	background-image: var(--bs-gradient);
+	/*background-color: #e9efef;
+	background-image: var(--bs-gradient);*/
 }
 .modal-body, .modal-header {
 	border-bottom: 1px solid #a8c9c9;

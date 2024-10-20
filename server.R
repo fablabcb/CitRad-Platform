@@ -83,6 +83,7 @@ function(input, output, session) {
   output$add_location_UI <- SERVER_add_location("location_form", userID, map_click, map_proxy)
   show_locations_server("show_locations", userID, map_proxy)
   SERVER_upload_data("upload_data", location_id = reactive(input$map_marker_id), userID)
+  SERVER_my_uploads("my_uploads", userID, reactive(input$show_uploads))
 
 
   onStop(function(){
