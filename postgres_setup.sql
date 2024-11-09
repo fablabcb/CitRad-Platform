@@ -1,4 +1,8 @@
+psql -U postgres -h db -p 5432
+
+
 \l
+\c content
 
 CREATE DATABASE users;
 CREATE DATABASE content;
