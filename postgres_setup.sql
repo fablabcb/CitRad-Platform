@@ -41,7 +41,25 @@ CREATE TABLE "file_uploads" (
     "temporary_speedlimit" integer,
     "location_id" integer NOT NULL,
     "filename" text,
+    "filetype" character(5),
+    "file_version" integer,
+    "iq_measurement" boolean,
+    "sample_rate" integer,
+    "num_fft_bins" integer,
+    "start_time" timestamp,
+    "end_time" timestamp,
+    "indexed" boolean DEFAULT false,
+    "processed" boolean DEFAULT false,
     CONSTRAINT "fk_location_id" FOREIGN KEY ("location_id") REFERENCES "sensor_locations" ("id")
+);
+
+CREATE TABLE "bin_index" (
+    "file_id" integer NOT NULL,
+    "timestamp" timestamp NOT NULL,
+    "milliseconds" integer,
+    "byte_index" integer,
+    CONSTRAINT "pk_bin_data" PRIMARY KEY ("file_id", "timestamp"),
+    CONSTRAINT "fk_file_id" FOREIGN KEY ("file_id") REFERENCES "file_uploads" ("id")
 );
 
 CREATE TABLE users (
@@ -52,6 +70,7 @@ CREATE TABLE users (
 );
 
 
+CREATE ROLE data_platform WITH LOGIN PASSWORD '';
 GRANT ALL PRIVILEGES ON DATABASE users TO data_platform;
 GRANT ALL PRIVILEGES ON DATABASE content TO data_platform;
 GRANT ALL PRIVILEGES ON TABLE sensor_locations TO data_platform;
@@ -59,3 +78,4 @@ GRANT ALL PRIVILEGES ON SCHEMA public TO data_platform;
 GRANT ALL PRIVILEGES ON SEQUENCE sensor_locations_id_seq TO data_platform;
 GRANT ALL PRIVILEGES ON TABLE file_uploads TO data_platform;
 GRANT ALL PRIVILEGES ON SEQUENCE file_uploads_id_seq TO data_platform;
+GRANT ALL PRIVILEGES ON TABLE bin_index TO data_platform;

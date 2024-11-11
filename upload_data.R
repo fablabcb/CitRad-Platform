@@ -7,7 +7,7 @@ SERVER_upload_data <- function(id, location_id, userID){
         title=str_glue("Daten hochladen für Standort {location_id()}"),
         textAreaInput(ns("notes"), "Notizen zum Upload", placeholder = "Schreibe uns wenn es bei diesen Daten etwas besonderes gibt, z.B.: \n• \"zurzeit Baustelle\", \n• \"temporär veränderte Geschwindigkeitsbegrenzung\" oder \n• \"erhöhtes Verkehrsaufkommen wegen Umleitung\"", rows = 5, resize="vertical", width = "100%"),
         numericInput(ns("speedLimit"), "Änderung Geschwindigkeitsbegrenzung", value = NULL, min = 10, max=100, step = 10, width = "100%"),
-        fileInput(ns("files"), "Datei auswählen", multiple = T, accept = c(".csv", ".png", ".jpg", ".jpeg"), width = "100%", placeholder = "bisher keine Datei ausgewählt", buttonLabel = "Auswählen"),
+        fileInput(ns("files"), "Datei auswählen", multiple = T, accept = c(".bin",".csv", ".png", ".jpg", ".jpeg"), width = "100%", placeholder = "bisher keine Datei ausgewählt", buttonLabel = "Auswählen"),
 
         footer = tagList(
           actionButton(ns("cancel_upload"), "Abbrechen"),
@@ -37,17 +37,20 @@ SERVER_upload_data <- function(id, location_id, userID){
       for(i in 1:nrow(files)){
         file = files[i,]
         file.copy(file$datapath, file.path(data_folder, file$name), copy.date = T)
+        filename <- file.path(data_folder, file$name)
+        filetype <- str_extract(filename, '[^\\.]+$')
         query <- str_glue(.na="DEFAULT",
-                          "INSERT INTO file_uploads (username, temporary_speedlimit, notes, filename, location_id) VALUES (
+                          "INSERT INTO file_uploads (username, temporary_speedlimit, notes, filename, filetype, location_id) VALUES (
                     '{userID()}',
                     {as.integer(input$speedLimit)},
                     '{input$notes}',
-                    '{file.path(data_folder, file$name)}',
+                    '{filename}',
+                    '{filetype}',
                     {location_id()}
                     ) RETURNING id;")
 
-        cat(query)
         id = dbGetQuery(content, query)$id
+        if(filetype == "bin") index_binary_file(filename, id=id, debug =T)
         showNotification(str_glue("Datei {file$name} wurden hochgeladen mit id {id}."))
       }
       removeModal()
