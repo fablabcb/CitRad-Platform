@@ -4,7 +4,7 @@ page_sidebar(title="CitRad", fillable_mobile = T,
 
              sidebar = sidebar(width=300,
                                textOutput("map_marker"),
-                               accordion(multiple=F,open = "Meine Uploads",
+                               accordion(multiple=T,open = c("Meine Uploads", "Standorte anzeigen"),
                                          accordion_panel(
                                            "Standorte anzeigen",
                                            UI_show_locations("show_locations")

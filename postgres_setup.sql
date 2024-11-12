@@ -14,6 +14,13 @@ MINVALUE 1
 MAXVALUE 2147483647
 CACHE 1;
 
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(500),
+    password_hash VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE "sensor_locations" (
     "id" SERIAL NOT NULL,
     PRIMARY KEY ("id"),
@@ -62,14 +69,38 @@ CREATE TABLE "bin_index" (
     CONSTRAINT "fk_file_id" FOREIGN KEY ("file_id") REFERENCES "file_uploads" ("id")
 );
 
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    email VARCHAR(500),
-    password_hash VARCHAR(255) NOT NULL
+
+CREATE TABLE "raw_metrics" (
+    "file_id" integer NOT NULL,
+    "timestamp" timestamp NOT NULL,
+    "milliseconds" integer,
+    "speed" real,
+    "speed_reverse" real,
+    "strength" real,
+    "strength_reverse" real,
+    "meanAmplitudeForPedestrians" real,
+    "meanAmplitudeForCars" real,
+    "meanAmplitudeForNoiseLevel" real,
+    "dynamic_noise_level" real,
+    "dynamic_noise_level_filter_size" integer,
+    "car_trigger_signal" real,
+    "car_trigger_signal_filter_size" integer,
+    CONSTRAINT "pk_raw_metrics" PRIMARY KEY ("file_id", "timestamp"),
+    CONSTRAINT "fk_file_id" FOREIGN KEY ("file_id") REFERENCES "file_uploads" ("id")
 );
 
 
+CREATE TABLE "car_detections" (
+  "id" SERIAL NOT NULL,
+  "timestamp" timestamp NOT NULL,
+  "milliseconds" integer,
+  "isForward" integer,
+  "sampleCount" integer,
+  "medianSpeed" real,
+  "file_id" integer NOT NULL,
+  CONSTRAINT "pk_car_detections" PRIMARY KEY ("file_id", "timestamp"),
+  CONSTRAINT "fk_file_id" FOREIGN KEY ("file_id") REFERENCES "file_uploads" ("id")
+);
 CREATE ROLE data_platform WITH LOGIN PASSWORD '';
 GRANT ALL PRIVILEGES ON DATABASE users TO data_platform;
 GRANT ALL PRIVILEGES ON DATABASE content TO data_platform;
@@ -79,3 +110,6 @@ GRANT ALL PRIVILEGES ON SEQUENCE sensor_locations_id_seq TO data_platform;
 GRANT ALL PRIVILEGES ON TABLE file_uploads TO data_platform;
 GRANT ALL PRIVILEGES ON SEQUENCE file_uploads_id_seq TO data_platform;
 GRANT ALL PRIVILEGES ON TABLE bin_index TO data_platform;
+GRANT ALL PRIVILEGES ON TABLE raw_metrics TO data_platform;
+GRANT ALL PRIVILEGES ON TABLE car_detections TO data_platform;
+GRANT ALL PRIVILEGES ON SEQUENCE car_detections_id_seq TO data_platform;

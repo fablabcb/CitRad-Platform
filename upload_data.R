@@ -51,6 +51,8 @@ SERVER_upload_data <- function(id, location_id, userID){
 
         id = dbGetQuery(content, query)$id
         if(filetype == "bin") index_binary_file(filename, id=id, debug =T)
+        if(filetype == "csv" & str_detect(filename, "metrics")) read_metrics(filename, id)
+        if(filetype == "csv" & str_detect(filename, "cars")) read_car_detections(filename, id)
         showNotification(str_glue("Datei {file$name} wurden hochgeladen mit id {id}."))
       }
       removeModal()

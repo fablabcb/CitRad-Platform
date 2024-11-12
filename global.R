@@ -12,13 +12,14 @@ library(RPostgreSQL)
 library(sf)
 library(lwgeom)
 library(rpostgis)
-
+library(ggplot2)
 
 source("add_location.R")
 source("show_locations.R")
 source("upload_data.R")
 source("my_uploads.R")
 source("index_binary_file.R")
+source("read_csv.R")
 load("osmdata_splitted.RData")
 
 options(shiny.maxRequestSize=100*1024^2)
