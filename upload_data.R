@@ -11,7 +11,7 @@ SERVER_upload_data <- function(id, location_id, userID){
 
         footer = tagList(
           actionButton(ns("cancel_upload"), "Abbrechen"),
-          actionButton(ns("confirm_upload"), "Hochladen", disabled = T, class="btn-primary")
+          input_task_button(ns("confirm_upload"), "Hochladen", disabled = T, class="btn-primary")
         )
       ))
     })
@@ -39,6 +39,8 @@ SERVER_upload_data <- function(id, location_id, userID){
         file.copy(file$datapath, file.path(data_folder, file$name), copy.date = T)
         filename <- file.path(data_folder, file$name)
         filetype <- str_extract(filename, '[^\\.]+$')
+        if(filetype == "csv" & str_detect(filename, "metrics")) filetype = "metri"
+        if(filetype == "csv" & str_detect(filename, "cars")) filetype = "cars"
         query <- str_glue(.na="DEFAULT",
                           "INSERT INTO file_uploads (username, temporary_speedlimit, notes, filename, filetype, location_id) VALUES (
                     '{userID()}',
@@ -51,8 +53,8 @@ SERVER_upload_data <- function(id, location_id, userID){
 
         id = dbGetQuery(content, query)$id
         if(filetype == "bin") index_binary_file(filename, id=id, debug =T)
-        if(filetype == "csv" & str_detect(filename, "metrics")) read_metrics(filename, id)
-        if(filetype == "csv" & str_detect(filename, "cars")) read_car_detections(filename, id)
+        if(filetype == "metri") read_metrics(filename, id)
+        if(filetype == "cars") read_car_detections(filename, id)
         showNotification(str_glue("Datei {file$name} wurden hochgeladen mit id {id}."))
       }
       removeModal()

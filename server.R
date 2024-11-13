@@ -55,7 +55,7 @@ function(input, output, session) {
 
   output$map <- renderMaplibre({
     maplibre("./neutrino.de.json",
-             center=c(14.324609,51.759617), zoom=12, maxzoom=19, minzoom=12,
+             center=c(14.324609,51.759617), zoom=13, maxzoom=19, minzoom=12,
 
     ) %>%
       add_navigation_control() %>%
@@ -83,6 +83,7 @@ function(input, output, session) {
   output$add_location_UI <- SERVER_add_location("location_form", userID, map_click, map_proxy)
   show_locations_server("show_locations", userID, map_proxy)
   SERVER_upload_data("upload_data", location_id = reactive(input$map_marker_id), userID)
+  SERVER_show_data("show_data", location_id = reactive(input$show_data_for_id), userID)
   SERVER_my_uploads("my_uploads", userID, reactive(input$show_uploads))
 
 
