@@ -14,21 +14,22 @@ library(ggplot2)
 # filename <- files$filename[files$id == id]
 
 
-read_car_detections <- function(filename, id, debug=F){
+read_car_detections <- function(filename, id, location_id, debug=F){
   start_time <- filename %>%
     str_extract("(?<=cars_).*") %>%
     as.POSIXct(format="%Y-%m-%d_%H-%M-%S")
   cars <- read_csv(filename, comment = "//") %>%
     rename(milliseconds=timestamp) %>%
     mutate(timestamp = start_time + milliseconds(milliseconds) - milliseconds(milliseconds[1])) %>%
-    mutate(file_id=id)
+    mutate(file_id=id) %>%
+    mutate(location_id=location_id)
   if(debug) message("writing csv data to db")
   dbWriteTable(content, "car_detections", cars, append=T, row.names=F)
 }
 
 
 
-read_metrics <- function(filename, id, debug=F){
+read_metrics <- function(filename, id, location_id, debug=F){
   if(debug) message("reading csv data from file")
   start_time <- filename %>%
     str_extract("(?<=metrics_).*") %>%
@@ -37,6 +38,7 @@ read_metrics <- function(filename, id, debug=F){
     rename(milliseconds=timestamp) %>%
     mutate(timestamp = start_time + milliseconds(milliseconds) - milliseconds(milliseconds[1])) %>%
     mutate(file_id=id) %>%
+    mutate(location_id=location_id) %>%
     select(file_id, timestamp, milliseconds, speed, speed_reverse, strength, strength_reverse, meanAmplitudeForPedestrians, meanAmplitudeForCars, meanAmplitudeForNoiseLevel, dynamic_noise_level, car_trigger_signal)
 
   #str_replace_all(colnames(metrics), pattern=c("^mean_amplitude$"="meanAmplitudeForNoiseLevel", "^pedestrian_mean_amplitude$"="meanAmplitudeForPedestrians", ))

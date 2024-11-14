@@ -25,7 +25,7 @@ postgres_time <- function(x){
   format(x, "TIMESTAMP '%Y-%-m-%-d %H:%M:%OS3'")
 }
 
-index_binary_file <- function(filename, id, read_data=F, debug=F){
+index_binary_file <- function(filename, id, location_id, read_data=F, debug=F){
   if(debug) message("opening file")
   size <- file.size(filename)
   con <- file(filename, open = "rb")
@@ -105,12 +105,14 @@ index_binary_file <- function(filename, id, read_data=F, debug=F){
   if(debug) message("write bin index to db")
   index_table <- tibble(
     file_id = id,
+    location_id = location_id,
     timestamp = timestamps,
     milliseconds = millis_timestamp,
     byte_index = timestamp_index
   )
+
   dbWriteTable(content, "bin_index", index_table, append=T, row.names=F)
-  #read_data <- dbGetQuery(content, "SELECT * FROM bin_index;")
+  #read_data <- dbGetQuery(content, "SELECT * FROM bin_index WHERE file_id = 86 ORDER BY timestamp DESC limit 10;")
   if(read_data) return(data)
 }
 
