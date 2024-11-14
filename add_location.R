@@ -62,7 +62,7 @@ SERVER_add_location <- function(id, userID, map_click, map_proxy){
       map <- map_proxy() %>%
         set_paint_property(layer="label-street-residential", name="text-color", value="#000000") %>%
         clear_markers() %>%
-        add_markers(marker_id = "sensor_location", data=c(click$lng, click$lat), draggable=F) %>%
+        mapgl::add_markers(marker_id = "sensor_location", data=c(click$lng, click$lat), draggable=F) %>%
         clear_layer("nearest_street") %>%
         add_line_layer("nearest_street", source = nearest_street, line_color = "yellow", line_width = interpolate(property = "zoom", type = list("exponential", 2), values = c(12,19), stops = c(1,60))) %>%
         clear_layer("nearest_points") %>%

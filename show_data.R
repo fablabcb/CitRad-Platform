@@ -19,7 +19,7 @@ SERVER_show_data <- function(id, location_id, userID){
 
 
         selectInput(ns("date"), label = "Messdatum", choices = c(dates_with_data$day)),
-        plotlyOutput(ns("scatterplot"), height = "300px"),
+        girafeOutput(ns("scatterplot"), height = "300px"),
         plotOutput(ns("spectrum"), height = "300px"),
 
         footer = tagList(
@@ -35,31 +35,32 @@ SERVER_show_data <- function(id, location_id, userID){
       dbGetQuery(content, query) %>% tibble
     })
 
-    output$scatterplot <- renderPlotly({
+    output$scatterplot <- renderGirafe({
       gg <- car_detections() %>%
         ggplot() +
         aes(x=timestamp, y=medianSpeed, tooltip = paste(timestamp, "\n", medianSpeed, " km/h"), data_id = id) +
-        geom_point()
-      #girafe(ggobj = gg, width_svg=11) %>% girafe_options(opts_selection(type="single"))
-      ggplotly(gg, source="scatterplot_selected")
+        geom_point_interactive()
+      girafe(ggobj = gg, width_svg=11) %>% girafe_options(opts_selection(type="single"))
+      #ggplotly(gg, source="scatterplot_selected")
     })
 
     output$spectrum <- renderPlot({
-      selected <- event_data("plotly_click", source = "scatterplot_selected")
+      #selected <- event_data("plotly_click", source = "scatterplot_selected")
+
+      selected <- input$scatterplot_selected
       validate(
         need(selected, "no points selected")
       )
-      showNotification(str_glue("point {selected$pointNumber} selected"))
-      selected_points <- car_detections()[selected$pointNumber,]
+      showNotification(str_glue("point {selected} selected"))
+      #selected_points <- car_detections()[selected$pointNumber,]
+      selected_points <- car_detections() %>% filter(id==selected)
 
-      start_time <- min(selected_points$timestamp) - minutes(1)
-      end_time <- max(selected_points$timestamp) + minutes(1)
-      file_ids <- unique(selected_points$file_id)
+      start_time <- min(selected_points$timestamp) - seconds(20)
+      end_time <- max(selected_points$timestamp) + seconds(20)
 
       file_ids <- dbGetQuery(content, str_glue("SELECT id from file_uploads WHERE location_id = '{location_id()}' AND filetype = 'bin';"))$id
 
-      byte_index <- dbGetQuery(content, str_glue("SELECT * from bin_index WHERE file_id = '{paste(file_ids[1], collapse='\\',\\'')}' AND timestamp >= '{start_time}' AND timestamp <= '{end_time}';")) %>% tibble
-
+      byte_index <- dbGetQuery(content, str_glue("SELECT * from bin_index WHERE file_id IN ('{paste(file_ids, collapse='\\',\\'')}') AND timestamp >= '{start_time}' AND timestamp <= '{end_time}';")) %>% tibble
 
       validate(
         need(nrow(byte_index)>0, "no spectrum data for the selected car detections")
@@ -71,19 +72,31 @@ SERVER_show_data <- function(id, location_id, userID){
         filename = dbGetQuery(content, str_glue("SELECT filename from file_uploads WHERE id = {file_id};"))$filename
         index <- byte_index %>%
           filter(file_id == file_id) %>%
-          pull(byte_index) %>%
-          head(1000)
+          pull(byte_index)
         data <- read_from_byte_index(filename, index, debug=T)
-        image(data, useRaster = T)
+        timestamps <- data$timestamps
+        data <- data$data
 
       }
 
-      image(data, useRaster = T)
+      par(mai=c(1,1,.1,1), bg="transparent", las=1)
+
+      tick_positions <- tibble(index = 1:length(timestamps), timestamp = timestamps) %>%
+        group_by(time = floor_date(timestamp, "1 seconds")) %>%
+        summarise(position = first(index)) %>%
+        mutate(label = time %>% with_tz("UTC") %>% format("%Y-%m-%d\n%H:%M:%S %Z") ) %>%
+
+        tail(-1)
+
+      sample_rate = 12000
+      speed_conversion = (sample_rate/1024)/44.0
+      speeds <- (1:1024-512) * speed_conversion
 
 
 
-
-      #dbGetQuery(content, str_glue("SELECT * from bin_index;")) %>% tibble
+      image(1:nrow(data), speeds, data, col=magma(100), useRaster = T, xaxt="n", xlab="time", ylab="speed")
+      axis(1, tick_positions$position, tick_positions$label, mgp=c(3, 2, 0))
+      abline(v=which.min(abs(timestamps - selected_points$timestamp)) - 200+31)
     })
 
 

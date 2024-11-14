@@ -12,20 +12,19 @@ read_from_byte_index <- function(filename, byte_index, read_data=T, debug=F){
   if(file_version == 2) D_SIZE <- readBin(con, "integer", n=1, size=1, signed = F)
   iq_measurement <- readBin(con, "logical", n=1, size=1)
   sample_rate <- readBin(con, "integer", n=1, size=2, signed = F)
+  start_millis <- readBin(con, "integer", n=1, size=4)
 
   if(file_version == 1){
 
     # number of records:
     n <- ((size-11)/(num_fft_bins+4)) # 11 file header bytes
-    n
 
     # read records:
-    start_data_block <- seek(con)
     timestamp_index <- byte_index
 
     if(debug) message("reading timestamps")
     millis_timestamp <- sapply(timestamp_index, read_timestamp, con=con)
-    timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(millis_timestamp[1])
+    timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(start_millis)
 
 
     if(read_data){
@@ -49,7 +48,7 @@ read_from_byte_index <- function(filename, byte_index, read_data=T, debug=F){
     if(any(integrity_field != -1)) stop("integrity field validation failed")
 
     millis_timestamp <- sapply(timestamp_index, read_timestamp, con=con)
-    timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(millis_timestamp[1])
+    timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(start_millis)
 
     if(read_data){
       if(debug) message("reading data")
@@ -62,5 +61,5 @@ read_from_byte_index <- function(filename, byte_index, read_data=T, debug=F){
   close(con)
 
 
-  if(read_data) return(data)
+  if(read_data) return(list(data=data, timestamps=timestamps))
 }
