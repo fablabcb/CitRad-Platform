@@ -1,5 +1,24 @@
 
-read_from_byte_index <- function(filename, byte_index, read_data=T, debug=F){
+read_timestamp <- function(index, con){
+  seek(con, index)
+  readBin(con, "integer", n=1, size=4)
+}
+
+read_spectrum <- function(index, con, num_fft_bins=1024, byte_size=1){
+  seek(con, index)
+  -readBin(con, "integer", n=num_fft_bins, size=byte_size, signed = F)
+}
+
+read_integrity_field <- function(index, con){
+  seek(con, index)
+  readBin(con, "integer", n=1, size=4, endian = "little")
+}
+
+postgres_time <- function(x){
+  format(x, "TIMESTAMP '%Y-%-m-%-d %H:%M:%OS3'")
+}
+
+read_from_byte_index <- function(filename, byte_index=NA, read_data=T, debug=F){
   if(debug) message("opening file")
   size <- file.size(filename)
   con <- file(filename, open = "rb")
@@ -20,7 +39,14 @@ read_from_byte_index <- function(filename, byte_index, read_data=T, debug=F){
     n <- ((size-11)/(num_fft_bins+4)) # 11 file header bytes
 
     # read records:
-    timestamp_index <- byte_index
+    if(is.na(byte_index[1])){
+      if(debug) message("reading full file")
+      start_data_block <- seek(con)-4
+      timestamp_index <- start_data_block + (0:(n-1))*(1024+4)
+    }else{
+      if(debug) message("reading file index")
+      timestamp_index <- byte_index
+    }
 
     if(debug) message("reading timestamps")
     millis_timestamp <- sapply(timestamp_index, read_timestamp, con=con)
@@ -37,11 +63,15 @@ read_from_byte_index <- function(filename, byte_index, read_data=T, debug=F){
 
   if(file_version == 2){
     # number of records:
-    n <- ((size-12)/(num_fft_bins+4+8)) # 11 file header bytes
+    n <- ((size-12)/(num_fft_bins+4+8)) # 12 file header bytes
     n
 
-    start_data_block <- seek(con)
-    timestamp_index <- byte_index
+    if(is.na(byte_index[1])){
+      start_data_block <- seek(con)-4
+      timestamp_index <- start_data_block + (0:(n-1))*(1024+4+4+4)
+    }else{
+      timestamp_index <- byte_index
+    }
 
     if(debug) message("reading timestamps")
     integrity_field <- sapply(timestamp_index+8+num_fft_bins*D_SIZE, read_integrity_field, con=con)
@@ -60,6 +90,5 @@ read_from_byte_index <- function(filename, byte_index, read_data=T, debug=F){
   }
   close(con)
 
-
-  if(read_data) return(list(data=data, timestamps=timestamps))
+  if(read_data) return(list(data=data, timestamps=timestamps, milliseconds=millis_timestamp, metadata=list(file_version=file_version, start_time=start_time, num_fft_bins=num_fft_bins, iq_measurement=iq_measurement, sample_rate=sample_rate, n=n)))
 }
