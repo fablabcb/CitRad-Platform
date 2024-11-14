@@ -22,6 +22,7 @@ read_car_detections <- function(filename, id, location_id, debug=F){
     rename(milliseconds=timestamp) %>%
     mutate(timestamp = start_time + milliseconds(milliseconds) - milliseconds(milliseconds[1])) %>%
     mutate(file_id=id) %>%
+    mutate(source="sensor unit") %>%
     mutate(location_id=location_id)
   if(debug) message("writing csv data to db")
   dbWriteTable(content, "car_detections", cars, append=T, row.names=F)

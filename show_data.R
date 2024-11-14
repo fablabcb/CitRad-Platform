@@ -7,7 +7,7 @@ SERVER_show_data <- function(id, location_id, userID){
 
     observeEvent(location_id(), {
       location_details <- dbGetQuery(content, str_glue("SELECT street_name FROM sensor_locations WHERE id = '{location_id()}';"))
-      file_ids <- dbGetQuery(content, str_glue("SELECT id FROM file_uploads WHERE location_id = '{location_id()}' AND filetype = 'cars';"))
+      file_ids <- dbGetQuery(content, str_glue("SELECT id FROM file_uploads WHERE location_id = '{location_id()}' AND filetype = 'car_detections';"))
       file_ids(file_ids)
       query <- str_glue("SELECT date_trunc('day', timestamp) as day, count(id) FROM car_detections WHERE file_id IN ('{paste0(file_ids$id, collapse='\\',\\'')}') GROUP BY day;")
       dates_with_data <- dbGetQuery(content, query) %>% tibble
@@ -20,7 +20,7 @@ SERVER_show_data <- function(id, location_id, userID){
 
         selectInput(ns("date"), label = "Messdatum", choices = c(dates_with_data$day)),
         girafeOutput(ns("scatterplot"), height = "300px"),
-        plotOutput(ns("spectrum"), height = "300px"),
+        plotOutput(ns("spectrum"), height = "350px"),
 
         footer = tagList(
           actionButton(ns("close_modal"), "Schließen"),
@@ -40,7 +40,7 @@ SERVER_show_data <- function(id, location_id, userID){
         ggplot() +
         aes(x=timestamp, y=medianSpeed, tooltip = paste(timestamp, "\n", medianSpeed, " km/h"), data_id = id) +
         geom_point_interactive()
-      girafe(ggobj = gg, width_svg=11) %>% girafe_options(opts_selection(type="single"))
+      girafe(ggobj = gg, width_svg=11, height_svg=4) %>% girafe_options(opts_selection(type="single"))
       #ggplotly(gg, source="scatterplot_selected")
     })
 
@@ -58,7 +58,7 @@ SERVER_show_data <- function(id, location_id, userID){
       start_time <- min(selected_points$timestamp) - seconds(20)
       end_time <- max(selected_points$timestamp) + seconds(20)
 
-      file_ids <- dbGetQuery(content, str_glue("SELECT id from file_uploads WHERE location_id = '{location_id()}' AND filetype = 'bin';"))$id
+      file_ids <- dbGetQuery(content, str_glue("SELECT id from file_uploads WHERE location_id = '{location_id()}' AND filetype = 'spectrum';"))$id
 
       byte_index <- dbGetQuery(content, str_glue("SELECT * from bin_index WHERE file_id IN ('{paste(file_ids, collapse='\\',\\'')}') AND timestamp >= '{start_time}' AND timestamp <= '{end_time}';")) %>% tibble
 
@@ -96,7 +96,7 @@ SERVER_show_data <- function(id, location_id, userID){
 
       image(1:nrow(data), speeds, data, col=magma(100), useRaster = T, xaxt="n", xlab="time", ylab="speed")
       axis(1, tick_positions$position, tick_positions$label, mgp=c(3, 2, 0))
-      abline(v=which.min(abs(timestamps - selected_points$timestamp)) - 200+31)
+      abline(v=which.min(abs(timestamps - selected_points$timestamp)))
     })
 
 

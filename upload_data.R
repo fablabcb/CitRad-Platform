@@ -39,8 +39,10 @@ SERVER_upload_data <- function(id, location_id, userID){
         file.copy(file$datapath, file.path(data_folder, file$name), copy.date = T)
         filename <- file.path(data_folder, file$name)
         filetype <- str_extract(filename, '[^\\.]+$')
-        if(filetype == "csv" & str_detect(filename, "metrics")) filetype = "metri"
-        if(filetype == "csv" & str_detect(filename, "cars")) filetype = "cars"
+        if(filetype %in% c("bin", "BIN")) filetype = "spectrum"
+        if(filetype == "csv" & str_detect(filename, "metrics")) filetype = "metrics"
+        if(filetype == "csv" & str_detect(filename, "cars")) filetype = "car_detections"
+        if(filetype %in% c("png", "jpg", "jpeg")) filetype = "image"
         query <- str_glue(.na="DEFAULT",
                           "INSERT INTO file_uploads (username, temporary_speedlimit, notes, filename, filetype, location_id) VALUES (
                     '{userID()}',
@@ -52,9 +54,9 @@ SERVER_upload_data <- function(id, location_id, userID){
                     ) RETURNING id;")
 
         id = dbGetQuery(content, query)$id
-        if(filetype == "bin") index_binary_file(filename, id=id, debug =T)
-        if(filetype == "metri") read_metrics(filename, id)
-        if(filetype == "cars") read_car_detections(filename, id)
+        if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =T)
+        if(filetype == "metrics") read_metrics(filename, id, location_id=location_id())
+        if(filetype == "car_detections") read_car_detections(filename, id, location_id=location_id())
         showNotification(str_glue("Datei {file$name} wurden hochgeladen mit id {id}."))
       }
       removeModal()

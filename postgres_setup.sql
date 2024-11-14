@@ -13,7 +13,7 @@ GRANT ALL PRIVILEGES ON SCHEMA public TO data_platform;
 
 
 DROP table sensor_locations;
-DROP table file_uploads;
+DROP table file_uploads CASCADE;
 DROP table bin_index;
 DROP table raw_metrics;
 DROP table car_detections;
@@ -45,6 +45,7 @@ GRANT ALL PRIVILEGES ON TABLE sensor_locations TO data_platform;
 GRANT ALL PRIVILEGES ON SEQUENCE sensor_locations_id_seq TO data_platform;
 
 
+CREATE TYPE filetype AS ENUM ('spectrum', 'metrics', 'car_detections', 'image');
 CREATE TABLE "file_uploads" (
     "id" SERIAL NOT NULL,
     PRIMARY KEY ("id"),
@@ -54,7 +55,7 @@ CREATE TABLE "file_uploads" (
     "temporary_speedlimit" integer,
     "location_id" integer NOT NULL,
     "filename" text,
-    "filetype" character(5),
+    "filetype" filetype,
     "file_version" integer,
     "iq_measurement" boolean,
     "sample_rate" integer,
