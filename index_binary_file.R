@@ -25,8 +25,9 @@ postgres_time <- function(x){
   format(x, "TIMESTAMP '%Y-%-m-%-d %H:%M:%OS3'")
 }
 
-index_binary_file <- function(filename, id, location_id, read_data=F, debug=F){
+index_binary_file <- function(filename, id, location_id, read_data=F, debug=F, shiny_notification=F){
   if(debug) message("opening file")
+  if(shiny_notification) showNotification(id = filename, HTML(basename(filename), "<br/>Daten einlesen"), duration = NULL)
   size <- file.size(filename)
   con <- file(filename, open = "rb")
   # read file header:

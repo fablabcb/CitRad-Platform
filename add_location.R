@@ -34,7 +34,7 @@ SERVER_add_location <- function(id, userID, map_click, map_proxy){
       nearest_street <- splitted_streets[st_nearest_feature(location, splitted_streets ),] %>%
         mutate(icon="music")
 
-      if(input$reverse){
+      if(req(input$reverse)){
         if(isTruthy(nearest_street$oneway)){
           showNotification("Die Fahrtrichtung der Einbahnstraße kann nicht umgekehrt werden.", type = "error")
           updateCheckboxInput(session, "reverse", value = F)

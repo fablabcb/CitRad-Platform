@@ -18,8 +18,9 @@ postgres_time <- function(x){
   format(x, "TIMESTAMP '%Y-%-m-%-d %H:%M:%OS3'")
 }
 
-read_from_byte_index <- function(filename, byte_index=NA, read_data=T, debug=F){
+read_from_byte_index <- function(filename, byte_index=NA, read_data=T, debug=F, shiny_notification=F){
   if(debug) message("opening file")
+  if(shiny_notification) showNotification(id = filename, paste(filename, "\nLese Daten"), duration = NULL)
   size <- file.size(filename)
   con <- file(filename, open = "rb")
   # read file header:

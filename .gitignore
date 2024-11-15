@@ -5,3 +5,6 @@
 *.db
 uploads/*
 *.RData
+notes.md
+postgis_tests.R
+test_database.R

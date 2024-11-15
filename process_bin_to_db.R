@@ -16,7 +16,7 @@ source("functions.R")
 
 
 process_bin_to_db <- function(filename, file_id, location_id){
-  cars <- process_bin(filename)
+  cars <- process_bin(filename, shiny_notification=T)
 
   data <- cars %>%
     rename(timestamp=trigger_start_time, isForward=trigger_direction, medianSpeed = car_speed) %>%
@@ -34,7 +34,7 @@ process_bin_to_db <- function(filename, file_id, location_id){
 
 
 
-process_bin <- function(filename, max_trigger_speed = 50, pedestrian_speed = 10, noise_dynamic_smoothing_factor = 100, signal_threshold = 20, car_trigger_signal_smoothing_factor = 21, diff_threshold = 0.2, timeshift = 0, mirror_subtract=F, version=1, width_per_minute=300){
+process_bin <- function(filename, max_trigger_speed = 50, pedestrian_speed = 10, noise_dynamic_smoothing_factor = 100, signal_threshold = 20, car_trigger_signal_smoothing_factor = 21, diff_threshold = 0.2, timeshift = 0, mirror_subtract=F, version=1, width_per_minute=300, shiny_notification=F){
 
 
   data <- read_from_byte_index(filename, read_data = T, debug=T)
@@ -71,6 +71,7 @@ process_bin <- function(filename, max_trigger_speed = 50, pedestrian_speed = 10,
   dynamic_noise_level <- simple_runmean(mean_amplitude, n)
 
   message("noise floor flattening")
+  if(shiny_notification) showNotification(id = filename, HTML(basename(filename) , "<br/>Rauschen herausfiltern"), duration = NULL)
   data_flattened <- data %>% future_apply(1, function(x) x-noise_floor_normalized) %>% t()
   if(mirror_subtract){
     data_flattened <- mirror_subtract(data_flattened)
@@ -128,6 +129,7 @@ process_bin <- function(filename, max_trigger_speed = 50, pedestrian_speed = 10,
 
 
   message("car stat")
+  if(shiny_notification) showNotification(id = filename, HTML(basename(filename), "<br/>Erkenne Fahrzeuge"), duration = NULL)
   trigger_start <- NA
   trigger_start_shorter <- NA
   trigger_end <- NA
@@ -207,6 +209,7 @@ process_bin <- function(filename, max_trigger_speed = 50, pedestrian_speed = 10,
   cars$forward$car_length[j-1] <- NA
 
   cars_tibble <<- bind_rows(as_tibble(cars$forward), as_tibble(cars$reverse))
+  if(shiny_notification) showNotification(id = filename, HTML(basename(filename), "<br/>Erkennung abgeschlossen"), duration=5)
 
   return(cars_tibble)
 }

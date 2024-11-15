@@ -1,8 +1,8 @@
-SERVER_upload_data <- function(id, location_id, userID){
+SERVER_upload_data <- function(id, location_id, show_upload, userID){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
-    observeEvent(location_id(), {
+    observeEvent(list(req(location_id()), show_upload()), {
       showModal(modalDialog(
         title=str_glue("Daten hochladen für Standort {location_id()}"),
         textAreaInput(ns("notes"), "Notizen zum Upload", placeholder = "Schreibe uns wenn es bei diesen Daten etwas besonderes gibt, z.B.: \n• \"zurzeit Baustelle\", \n• \"temporär veränderte Geschwindigkeitsbegrenzung\" oder \n• \"erhöhtes Verkehrsaufkommen wegen Umleitung\"", rows = 5, resize="vertical", width = "100%"),
@@ -54,7 +54,7 @@ SERVER_upload_data <- function(id, location_id, userID){
                     ) RETURNING id;")
 
         id = dbGetQuery(content, query)$id
-        if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =T)
+        if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =T, shiny_notification=T)
         if(filetype == "spectrum" & input$process_bin_file) process_bin_to_db(filename, file_id=id, location_id=location_id())
         if(filetype == "metrics") read_metrics(filename, id, location_id=location_id())
         if(filetype == "car_detections") read_car_detections(filename, id, location_id=location_id())
