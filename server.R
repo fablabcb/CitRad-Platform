@@ -18,9 +18,9 @@ function(input, output, session) {
 
 
   userID <- reactive({
-    return("nanu")
     req(loginForm())
     req(input$login)
+
     shiny::isolate({
       if(!isTruthy(input$username)){
         output$login_errors <- renderText("Bitte Benutzernamen angeben.")
