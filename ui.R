@@ -1,7 +1,6 @@
 library(shiny)
 #page_navbar
-page_sidebar(title=div(class="logo", includeHTML("www/logo.svg")), fillable_mobile = T,
-
+page_sidebar(title=div(class="logo", includeHTML("www/logo.svg")), fillable_mobile = T, window_title = "CitRad",
              sidebar = sidebar(width=300,
                                textOutput("map_marker"),
                                accordion(multiple=T,open = c("Meine Uploads", "Standorte anzeigen"),
@@ -12,10 +11,6 @@ page_sidebar(title=div(class="logo", includeHTML("www/logo.svg")), fillable_mobi
                                          accordion_panel(
                                            "Standort hinzufügen",
                                            uiOutput("add_location_UI")
-                                         ),
-                                         accordion_panel(
-                                           "Meine Uploads",
-                                           actionButton("show_uploads", "Zeige Uploads")
                                          )
                                )
              ),
