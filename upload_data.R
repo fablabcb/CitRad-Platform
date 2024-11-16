@@ -3,6 +3,7 @@ SERVER_upload_data <- function(id, location_id, show_upload, userID){
     ns = session$ns
 
     observeEvent(list(req(location_id()), show_upload()), {
+      userID()
       showModal(modalDialog(
         title=str_glue("Daten hochladen für Standort {location_id()}"),
         textAreaInput(ns("notes"), "Notizen zum Upload", placeholder = "Schreibe uns wenn es bei diesen Daten etwas besonderes gibt, z.B.: \n• \"zurzeit Baustelle\", \n• \"temporär veränderte Geschwindigkeitsbegrenzung\" oder \n• \"erhöhtes Verkehrsaufkommen wegen Umleitung\"", rows = 5, resize="vertical", width = "100%"),

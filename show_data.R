@@ -2,16 +2,11 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
-    file_ids <- reactiveVal()
-    dates_with_data <- reactiveVal()
-
     observeEvent(list(req(location_id()), show_data()), {
       location_details <- dbGetQuery(content, str_glue("SELECT street_name FROM sensor_locations WHERE id = '{location_id()}';"))
-      file_ids <- dbGetQuery(content, str_glue("SELECT id FROM file_uploads WHERE location_id = '{location_id()}' AND filetype = 'car_detections';"))
-      file_ids(file_ids)
+
       query <- str_glue("SELECT date_trunc('day', timestamp) as day, count(id) FROM car_detections WHERE location_id = {location_id()} GROUP BY day;")
       dates_with_data <- dbGetQuery(content, query) %>% tibble
-      dates_with_data(dates_with_data)
 
       showModal(modalDialog(size="xl", easyClose = T,
         title=str_glue("Daten anzeigen für {location_details$street_name}"),
@@ -52,6 +47,9 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
 
 
     output$scatterplot <- renderGirafe({
+      validate(
+        need(nrow(car_detections())>0, "Keine Daten zu diesem Standort vorhanden")
+      )
       gg <- car_detections() %>%
         ggplot() +
         aes(x=timestamp, y=medianSpeed, tooltip = paste(timestamp, "\n", medianSpeed, " km/h"), data_id = id) +

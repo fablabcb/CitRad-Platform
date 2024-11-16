@@ -14,7 +14,6 @@ SERVER_add_location <- function(id, userID, map_click, map_proxy){
     nearest_street <- reactiveVal()
 
     observeEvent(input$add_location, {
-      map_observer$resume()
       UI(list(
         p("Standort: ", textOutput(ns("selectedLocation"), inline = T)),
         p(textOutput(ns("selected_street"), inline=T)),
@@ -24,9 +23,11 @@ SERVER_add_location <- function(id, userID, map_click, map_proxy){
         actionButton(ns("save_location"), "Standort speichern", class="btn-primary btn-block mt-10 mb-10"),
         actionButton(ns("cancel_location_save"), "Abbrechen")
       ))
+      map_observer$resume()
     })
 
     map_observer <- observe(suspended = T, {
+      req(!is.null(input$reverse))
       click <- req(map_click())
 
       location <- st_as_sf(data.frame(lon=click$lng, lat=click$lat), coords=c("lon", "lat"), crs = 4326)
@@ -34,7 +35,7 @@ SERVER_add_location <- function(id, userID, map_click, map_proxy){
       nearest_street <- splitted_streets[st_nearest_feature(location, splitted_streets ),] %>%
         mutate(icon="music")
 
-      if(req(input$reverse)){
+      if(input$reverse){
         if(isTruthy(nearest_street$oneway)){
           showNotification("Die Fahrtrichtung der Einbahnstraße kann nicht umgekehrt werden.", type = "error")
           updateCheckboxInput(session, "reverse", value = F)
