@@ -1,5 +1,104 @@
 .logo{
-    background-color: #344C00 !important;
+
+}
+.logo svg{
+    height: 50px;
+}
+
+.logo svg .arrow{
+    fill: #0c4b4c;
+    stroke: #0c4b4c;
+    fill:#1fb76f;
+    stroke:#1fb76f;
+}
+
+.logo svg .arrow path{
+    fill: none;
+}
+.logo svg .logo_text{
+  fill: #fff;
+}
+
+.navbar.navbar-static-top{
+  background-color: #ffcc00;
+}
+.bslib-sidebar-layout > .sidebar {
+  background-color: #f4f4f4;
+}
+.accordion{
+  --bs-accordion-bg: none;
+}
+
+.btn-primary {
+	--bs-btn-color: #fff;
+	--bs-btn-bg: #1fb76f;
+	--bs-btn-border-color: #1fb76f;
+	--bs-btn-hover-color: #fff;
+	--bs-btn-hover-bg: #289260;
+	--bs-btn-hover-border-color: #289260;
+	--bs-btn-focus-shadow-rgb: 38,143,203;
+	--bs-btn-active-color: #fff;
+	--bs-btn-active-bg: #1fb76f;
+	--bs-btn-active-border-color: #1fb76f;
+	--bs-btn-active-shadow: inset 0 3px 5px rgba(0,0,0,0.125);
+	--bs-btn-disabled-color: #fff;
+	--bs-btn-disabled-bg: #b0e9ce;
+	--bs-btn-disabled-border-color: #289260;
+}
+
+.modal-content{
+  border: var(--bs-modal-border-width) solid rgba(40, 70, 94, 0.34);
+  box-shadow: 2px 2px 15px rgba(0,0,0,0.2);
+}
+
+.modal-backdrop {
+  --bs-backdrop-zindex: 1050;
+  --bs-backdrop-bg: rgba(255, 227, 0, 0);
+  --bs-backdrop-opacity: .5;
+  background-color:var(--bs-backdrop-bg)
+}
+
+#shiny-modal-wrapper:has(~ .modal-backdrop) .modal {
+	backdrop-filter: url(#motion-blur);
+	backdrop-filter: blur(8px);
+	background-blend-mode: overlay;
+	-webkit-backdrop-filter: blur(2px);
+}
+
+
+.modal.fade .modal-dialog {
+  transition:transform 0.3s ease-out;
+  transform:translate(0px,0);
+  transform: scale(0.8);
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal.fade .modal-dialog {
+    transition:none
+  }
+}
+.modal.show .modal-dialog,
+.modal.in .modal-dialog {
+  transform:none
+}
+.modal.modal-static .modal-dialog {
+  transform:scale(1.22)
+}
+.fade {
+  transition:opacity 0.12s linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade {
+    transition:none
+  }
+}
+
+
+.maplibregl-popup-content{
+  text-align: center;
+  box-shadow: 0 1px 15px rgba(0, 0, 0, 0.25);
+}
+.maplibregl-popup-content p:nth-last-child(2) {
+	margin-bottom: 0px;
 }
 
 .skin-green .main-header .navbar {

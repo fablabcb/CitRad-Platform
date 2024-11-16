@@ -13,14 +13,14 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
       dates_with_data <- dbGetQuery(content, query) %>% tibble
       dates_with_data(dates_with_data)
 
-      showModal(modalDialog(size="xl",
+      showModal(modalDialog(size="xl", easyClose = T,
         title=str_glue("Daten anzeigen für {location_details$street_name}"),
 
 
 
         selectInput(ns("date"), label = "Messdatum", choices = c(dates_with_data$day)),
         girafeOutput(ns("scatterplot"), height = "300px"),
-        plotOutput(ns("spectrum"), height = "350px"),
+        plotOutput(ns("spectrum"), height = "450px", width = "600px"),
         fluidRow(
           column(3,
             actionButton(ns("previous_car"), "Voriges"),
@@ -31,10 +31,15 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
           column(2, numericInput(ns("car_length"), "Fahrzeuglänge", value = 5, min = 1, max = 50, step=1)),
           column(2, numericInput(ns("time_offset"), "Zeitversatz", value=0, step=100))
         ),
+        fluidRow(
+          column(2, numericInput(ns("noise_floor_cutoff"), "Noise Floor Cutoff", value=-160, step = 10)),
+          column(2, numericInput(ns("seconds_before"), "Sekunden vorher", value=10, step=1)),
+          column(2, numericInput(ns("seconds_after"), "Sekunden danach", value=10, step=1)),
+
+        ),
 
         footer = tagList(
           actionButton(ns("close_modal"), "Schließen"),
-
         )
       ))
     })
@@ -68,7 +73,7 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
       selected_dot(selected_dot()+1)
     })
 
-    output$spectrum <- renderPlot({
+    output$spectrum <- renderPlot(res=100, {
       #selected <- event_data("plotly_click", source = "scatterplot_selected")
 
 
@@ -79,10 +84,11 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
       #selected_points <- car_detections()[selected$pointNumber,]
       selected_points <- car_detections() %>% filter(id==selected_dot())
 
-      start_time <- min(selected_points$timestamp) - seconds(20)
-      end_time <- max(selected_points$timestamp) + seconds(20)
+      start_time <- min(selected_points$timestamp) - seconds(input$seconds_before)
+      end_time <- max(selected_points$timestamp) + seconds(input$seconds_after)
 
-      file_ids <- dbGetQuery(content, str_glue("SELECT id from file_uploads WHERE location_id = '{location_id()}' AND filetype = 'spectrum';"))$id
+      location <- dbGetQuery(content, str_glue("SELECT id, street_name from sensor_locations WHERE id = {location_id()};"))
+      file_ids <- dbGetQuery(content, str_glue("SELECT id, name from file_uploads WHERE location_id = '{location_id()}' AND filetype = 'spectrum';"))$id
 
       byte_index <- dbGetQuery(content, str_glue("SELECT * from bin_index WHERE location_id = {location_id()} AND timestamp >= '{start_time}' AND timestamp <= '{end_time}' ORDER BY timestamp;")) %>% tibble
 
@@ -106,12 +112,11 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
         data <- data$data
       }
 
-      par(mai=c(1,1,.1,1), bg="transparent", las=1)
 
       tick_positions <- tibble(index = 1:length(timestamps), timestamp = timestamps) %>%
         group_by(time = floor_date(timestamp, "1 seconds")) %>%
         summarise(position = first(index)) %>%
-        mutate(label = time %>% with_tz("UTC") %>% format("%H:%M:%S") ) %>%
+        mutate(label = time %>% with_tz("UTC") %>% format("%S") ) %>%
 
         tail(-1)
 
@@ -119,10 +124,13 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
       speed_conversion = (sample_rate/1024)/44.0
       speeds <- (1:1024-512) * speed_conversion
 
+      data[data<(input$noise_floor_cutoff)] <- input$noise_floor_cutoff
 
-      image(1:nrow(data), speeds, data, col=magma(100), useRaster = T, xaxt="n", xlab="time", ylab="speed")
-      axis(1, tick_positions$position, tick_positions$label, mgp=c(3, 1.2, 0))
-      abline(v=which.min(abs(timestamps - selected_points$timestamp)), lty=3)
+
+      par(mai=c(.6,.6,.3,.4), bg="transparent", las=1, cex.main=1, mgp=c(1.9, .4, 0), tck=-0.015)
+      image(1:nrow(data), speeds, data, col=magma(100), useRaster = T, xaxt="n", xlab="time (s)", ylab="speed (km/h)", main=timestamps[1] %>% format(str_glue("{location$street_name} %Y-%m-%d %H:%M")), font.main = 1)
+      axis(1, tick_positions$position, tick_positions$label, mgp=c(1.8, .5, 0))
+      #abline(v=which.min(abs(timestamps - selected_points$timestamp)), lty=3)
       if(input$show_geometry){
         abline(h=0)
         car_geometry(t0=selected_points$timestamp+milliseconds(input$time_offset), speed = selected_points$medianSpeed, time = timestamps, milliseconds, input$y_distance, length=input$car_length)

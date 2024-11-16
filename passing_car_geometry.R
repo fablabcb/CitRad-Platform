@@ -18,6 +18,7 @@ car_geometry <- function(t0, speed, time, milliseconds, y, length){
   r <- sqrt(x^2+y^2)
   dr <- c(NA, diff(r)) / dt * 3.6  # km/h
   lines(index, dr, lty=2, col="white")
+  axis(4, speed, labels = round(speed))
 
   legend("topleft", bty="n", legend = c("front", paste(length, "m")), title = "car length", lty = c(1,2), col="white", text.col = "white")
 

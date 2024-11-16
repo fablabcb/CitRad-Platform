@@ -1,6 +1,6 @@
 library(shiny)
 #page_navbar
-page_sidebar(title="CitRad", fillable_mobile = T,
+page_sidebar(title=div(class="logo", includeHTML("www/logo.svg")), fillable_mobile = T,
 
              sidebar = sidebar(width=300,
                                textOutput("map_marker"),

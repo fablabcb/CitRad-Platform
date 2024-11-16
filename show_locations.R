@@ -27,9 +27,9 @@ show_locations_server <- function(id, userID, map_proxy){
       if(isTruthy(count) & count>0){
         locations <- pgGetGeom(content, query=query, geom="location_geom")
         locations(locations)
-        locations <- locations %>% mutate(link = str_glue('<p>{street_name}</p>
-                                                          <p><button onclick="Shiny.onInputChange(\'map_marker_id\', {id}); Shiny.onInputChange(\'upload_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten hochladen {id}</button></p>
-                                                          <p><button onclick="Shiny.onInputChange(\'show_data_for_id\', {id}); Shiny.onInputChange(\'show_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten anzeigen {id}</button></p>'))
+        locations <- locations %>% mutate(link = str_glue('<p class="fs-6"><span class="badge bg-secondary">{id}</span> <b>{street_name}</b></p>
+                                                          <p><button onclick="Shiny.onInputChange(\'map_marker_id\', {id}); Shiny.onInputChange(\'upload_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten hochladen</button></p>
+                                                          <p><button onclick="Shiny.onInputChange(\'show_data_for_id\', {id}); Shiny.onInputChange(\'show_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten anzeigen</button></p>'))
 
         map_proxy() %>%
           clear_markers() %>%
