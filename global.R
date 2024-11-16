@@ -17,6 +17,7 @@ library(ggiraph)
 library(plotly)
 library(viridisLite)
 library(reactable)
+library(reticulate)
 
 source("ggplot_settings.R")
 source("add_location.R")
