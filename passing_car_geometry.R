@@ -20,6 +20,7 @@ car_geometry <- function(t0, speed, time, milliseconds, y, length){
   lines(index, dr, lty=2, col="white")
   axis(4, speed, labels = round(speed))
 
-  legend("topleft", bty="n", legend = c("front", paste(length, "m")), title = "car length", lty = c(1,2), col="white", text.col = "white")
+  legend("topleft", bty="n", legend = c("front", paste(length, "m")), title = "vehicle length", lty = c(1,2), col="white", text.col = "white")
+  legend("topright", legend=paste(y, "m distance to sensor"), bty="n", text.col="white")
 
 }
