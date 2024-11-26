@@ -14,6 +14,7 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
 
 
         selectInput(ns("date"), label = "Messdatum", choices = c(dates_with_data$day)),
+        selectInput(ns("car_detections_source"), label="Datenquelle", choices=c("Erkennung auf Gerät"="sensor unit", "Erkennung auf Server"="R script")),
         girafeOutput(ns("scatterplot"), height = "500px"),
         plotOutput(ns("spectrum"), height = "450px", width = "600px"),
         fluidRow(
@@ -42,8 +43,8 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
     })
 
 
-    car_detections <- eventReactive(input$date, {
-      query <- str_glue("SELECT * FROM car_detections WHERE location_id = {location_id()} AND date_trunc('day', timestamp) = '{input$date}';")
+    car_detections <- reactive({
+      query <- str_glue("SELECT * FROM car_detections WHERE location_id = {location_id()} AND date_trunc('day', timestamp) = '{input$date}' AND source = '{input$car_detections_source}';")
       dbGetQuery(content, query) %>% tibble
     })
 
@@ -55,7 +56,7 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
 
       scatterplot <- car_detections() %>%
         ggplot() +
-        aes(x=timestamp, y=medianSpeed, tooltip = paste(timestamp, "\n", medianSpeed, " km/h"), data_id = id) +
+        aes(x=timestamp, y=medianSpeed, tooltip = paste(timestamp, "\n", round(medianSpeed), " km/h"), data_id = id) +
         scale_y_continuous(breaks=(1:12)*10, minor_breaks = F, name="speed (km/h)") +
         geom_point_interactive() +
         geom_hline(yintercept = location_details()$osm_speed, col="red")
