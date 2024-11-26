@@ -392,6 +392,16 @@
       ],
       "Hash": "33698c4b3127fc9f506654607fb73676"
     },
+    "dotCall64": {
+      "Package": "dotCall64",
+      "Version": "1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "7339da8bc231184ec506d7d144776b2a"
+    },
     "dplyr": {
       "Package": "dplyr",
       "Version": "1.1.4",
@@ -479,6 +489,20 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "aa5e1cd11c2d15497494c5292d7ffcc8"
+    },
+    "fields": {
+      "Package": "fields",
+      "Version": "16.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "maps",
+        "methods",
+        "spam",
+        "viridisLite"
+      ],
+      "Hash": "2900d13ae2ee1dcf9f9cce088103667c"
     },
     "fontawesome": {
       "Package": "fontawesome",
@@ -944,6 +968,18 @@
       ],
       "Hash": "d1fa65f36051966d147ca9905c72becd"
     },
+    "maps": {
+      "Package": "maps",
+      "Version": "3.4.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "graphics",
+        "utils"
+      ],
+      "Hash": "354a8094c634031421eeb5103f2e1f80"
+    },
     "memoise": {
       "Package": "memoise",
       "Version": "2.0.1",
@@ -1028,6 +1064,25 @@
         "utils"
       ],
       "Hash": "1d60a6e27e3f1753945cf305735dda19"
+    },
+    "patchwork": {
+      "Package": "patchwork",
+      "Version": "1.3.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "cli",
+        "farver",
+        "ggplot2",
+        "grDevices",
+        "graphics",
+        "grid",
+        "gtable",
+        "rlang",
+        "stats",
+        "utils"
+      ],
+      "Hash": "e23fb9ecb1258207bcb763d78d513439"
     },
     "pillar": {
       "Package": "pillar",
@@ -1492,6 +1547,20 @@
         "utils"
       ],
       "Hash": "75940133cca2e339afce15a586f85b11"
+    },
+    "spam": {
+      "Package": "spam",
+      "Version": "2.11-0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "dotCall64",
+        "grid",
+        "methods"
+      ],
+      "Hash": "6581c0a0bb8594b85c8de869644174ac"
     },
     "stringi": {
       "Package": "stringi",
