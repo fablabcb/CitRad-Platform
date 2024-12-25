@@ -3,6 +3,7 @@ library(bslib)
 library(duckdb)
 library(bcrypt)
 library(stringr)
+library(stringi)
 library(mapgl)
 library(dplyr)
 library(dbplyr)
@@ -33,6 +34,8 @@ source("read_from_byte_index.R")
 source("process_bin_to_db.R")
 source("passing_car_geometry.R")
 load("osmdata_splitted.RData")
+library(mailR)
+
 
 options(shiny.maxRequestSize=100*1024^2)
 
@@ -40,6 +43,10 @@ options(shiny.maxRequestSize=100*1024^2)
 drv <- dbDriver("PostgreSQL")
 users <- dbConnect(drv, dbname = "users", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
 content <- dbConnect(drv, dbname = "content", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
+
+smtp_settings <- list(host.name = "w01f6c99.kasserver.com", port = 587,
+     user.name = "m0738648",
+     passwd = Sys.getenv("PLATFORM_MAIL_PW"), tls = TRUE)
 
 azimuth_to_direction <- function(azimuth) {
   directions <- c("N", "NNO", "NO", "ONO", "O", "OSO", "SO", "SSO",

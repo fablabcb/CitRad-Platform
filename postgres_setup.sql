@@ -18,13 +18,37 @@ DROP table bin_index;
 DROP table raw_metrics;
 DROP table car_detections;
 
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    email VARCHAR(500),
-    password_hash VARCHAR(255) NOT NULL
-);
+TRUNCATE table car_detections;
+TRUNCATE table raw_metrics;
+TRUNCATE table bin_index;
+TRUNCATE table file_uploads CASCADE;
 
+
+
+\c users
+DROP table users;
+CREATE TABLE users (
+    "id" SERIAL PRIMARY KEY NOT NULL,
+    "username" VARCHAR(50) NOT NULL UNIQUE,
+    "email" VARCHAR(500),
+    "password_hash" VARCHAR(255) NOT NULL,
+    "email_confirmed" BOOLEAN DEFAULT FALSE,
+    "activated" BOOLEAN DEFAULT FALSE
+);
+GRANT ALL PRIVILEGES ON TABLE users TO data_platform;
+GRANT ALL PRIVILEGES ON SEQUENCE users_id_seq TO data_platform;
+
+DROP table email_confirmations;
+CREATE TABLE email_confirmations (
+  "code" VARCHAR(255) PRIMARY KEY NOT NULL,
+  "user_id" integer NOT NULL,
+  CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+);
+GRANT ALL PRIVILEGES ON TABLE email_confirmations TO data_platform;
+
+
+
+\c content
 CREATE TABLE "sensor_locations" (
     "id" SERIAL NOT NULL,
     PRIMARY KEY ("id"),

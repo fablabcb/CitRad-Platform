@@ -14,6 +14,10 @@ SERVER_add_location <- function(id, userID, map_click, map_proxy){
     nearest_street <- reactiveVal()
 
     observeEvent(input$add_location, {
+      if(!isTruthy(userID())){
+        showNotification("Sie müssen eingeloggt sein um Stationen hinzuzufügen")
+        req(F)
+      }
       UI(list(
         p("Standort: ", textOutput(ns("selectedLocation"), inline = T)),
         p(textOutput(ns("selected_street"), inline=T)),
