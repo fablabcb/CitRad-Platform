@@ -65,7 +65,7 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
 
       cars_per_hour <- car_detections() %>%
         ggplot() +
-        geom_histogram(aes(x=timestamp), col="black", fill="gray", breaks = breaks) +
+        geom_histogram(aes(x=timestamp, group=(isForward==1), fill=isForward==1), col="black", breaks = breaks, position="dodge") +
         scale_y_continuous(name="vehicles\nper hour")
 
       gg <- cars_per_hour / scatterplot + plot_layout(heights=c(2,3))
@@ -162,6 +162,8 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
       if(input$show_geometry){
         abline(h=0)
         car_geometry(t0=selected_points()$timestamp+milliseconds(input$time_offset), speed = selected_points()$medianSpeed, time = timestamps, milliseconds, input$y_distance, length=input$car_length)
+
+        geometry_data <<- list(t0=selected_points()$timestamp+milliseconds(input$time_offset), speed = selected_points()$medianSpeed, time = timestamps, milliseconds=milliseconds, y=input$y_distance, length=input$car_length, speed_conversion=speed_conversion, data=data)
       }
     })
 
