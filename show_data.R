@@ -17,13 +17,16 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
         selectInput(ns("car_detections_source"), label="Datenquelle", choices=c("Erkennung auf Gerät"="sensor unit", "Erkennung auf Server"="R script")),
         girafeOutput(ns("scatterplot"), height = "500px"),
         plotOutput(ns("spectrum"), height = "450px", width = "600px"),
-        fluidRow(
+        fluidRow(class="spectrum_navigation",
           column(3,
             actionButton(ns("previous_car"), "Voriges"),
             actionButton(ns("next_car"), "Nächstes"),
-          ),
+          )
+        ),
+        fluidRow(
           column(2, input_switch(ns("show_geometry"), "zeige Geometrie", value = F)),
-          column(2, numericInput(ns("y_distance"), "Distanz zum Sensor", value = 2, min = 0.5, max = 10)),
+          column(2, numericInput(ns("speed_correction"), "Geschwindigkeit", value = 30, min = 0, max = 150)),
+          column(2, numericInput(ns("y_distance"), "Distanz zum Sensor", value = 2, min = 0.5, max = 30)),
           column(2, numericInput(ns("car_length"), "Fahrzeuglänge", value = 5, min = 1, max = 50, step=1)),
           column(2, numericInput(ns("time_offset"), "Zeitversatz", value=0, step=100))
         ),
@@ -87,7 +90,11 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
       selected_dot(selected_dot()+1)
     })
 
-    selected_points <- reactive(car_detections() %>% filter(id==selected_dot()))
+    selected_points <- reactive({
+      points <- car_detections() %>% filter(id==selected_dot())
+      updateNumericInput(session, "speed_correction", value =  points$medianSpeed)
+      return(points)
+    })
 
 
     data <- reactive({
@@ -122,9 +129,12 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
       data <- read_from_byte_index(filename, index, debug=T)
       return(data)
     })
+
+
     location_details <- reactive({
       dbGetQuery(content, str_glue("SELECT id, street_name, user_speedlimit, osm_speedlimit from sensor_locations WHERE id = {location_id()};"))
     })
+
 
     output$spectrum <- renderPlot(res=100, {
       data <- data()
@@ -161,9 +171,9 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
       #abline(v=which.min(abs(timestamps - selected_points()$timestamp)), lty=3)
       if(input$show_geometry){
         abline(h=0)
-        car_geometry(t0=selected_points()$timestamp+milliseconds(input$time_offset), speed = selected_points()$medianSpeed, time = timestamps, milliseconds, input$y_distance, length=input$car_length)
+        car_geometry(t0=selected_points()$timestamp+milliseconds(input$time_offset), speed = input$speed_correction, time = timestamps, milliseconds, input$y_distance, length=input$car_length)
 
-        geometry_data <<- list(t0=selected_points()$timestamp+milliseconds(input$time_offset), speed = selected_points()$medianSpeed, time = timestamps, milliseconds=milliseconds, y=input$y_distance, length=input$car_length, speed_conversion=speed_conversion, data=data)
+        geometry_data <<- list(t0=selected_points()$timestamp+milliseconds(input$time_offset), speed = input$speed_correction, time = timestamps, milliseconds=milliseconds, y=input$y_distance, length=input$car_length, speed_conversion=speed_conversion, data=data)
       }
     })
 

@@ -176,3 +176,7 @@
 .modal-body, .modal-header {
 	border-bottom: 1px solid #a8c9c9;
 }
+
+.spectrum_navigation .btn {
+  margin-bottom: 15px;
+}
