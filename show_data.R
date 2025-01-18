@@ -65,10 +65,18 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
         geom_hline(yintercept = location_details()$osm_speed, col="red")
 
       breaks <- car_detections()$timestamp %>% round_date("hour") %>% unique
-
+      #browser()
       cars_per_hour <- car_detections() %>%
+        mutate(timestamp = floor_date(timestamp, "hour")) %>%
+        group_by(timestamp, isForward) %>%
+        summarise(Anzahl=n()) %>%
+        mutate(Richtung = c("<-", "->")[(isForward==1)+1]) %>%
         ggplot() +
-        geom_histogram(aes(x=timestamp, group=(isForward==1), fill=isForward==1), col="black", breaks = breaks, position="dodge") +
+        aes(x=timestamp, y=Anzahl, group=Richtung, fill=Richtung, col=Richtung) +
+        geom_area(col=NA, alpha=.3, position = "identity") +
+        geom_line(linewidth=1) +
+        geom_point_interactive(size=2, mapping = aes(data_id=paste(Richtung, timestamp), tooltip = paste0(format(timestamp, "%H:%M"), "\n", Anzahl, " Autos\npro Stunde"))) +
+       #geom_histogram(aes(x=timestamp, group=(isForward==1), fill=isForward==1), col="black", breaks = breaks, position="dodge") +
         scale_y_continuous(name="vehicles\nper hour")
 
       gg <- cars_per_hour / scatterplot + plot_layout(heights=c(2,3))
