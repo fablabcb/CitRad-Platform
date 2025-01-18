@@ -27,7 +27,7 @@ postgres_time <- function(x){
 
 index_binary_file <- function(filename, id, location_id, read_data=F, debug=F, shiny_notification=F){
   if(debug) message("opening file")
-  if(shiny_notification) showNotification(id = filename, HTML(basename(filename), "<br/>Daten einlesen"), duration = NULL)
+  if(shiny_notification) showNotification(id = filename, HTML(basename(filename), "<br/>Binärdaten indexieren"), duration = NULL)
   size <- file.size(filename)
   con <- file(filename, open = "rb")
   # read file header:
@@ -39,6 +39,7 @@ index_binary_file <- function(filename, id, location_id, read_data=F, debug=F, s
   if(file_version == 2) D_SIZE <- readBin(con, "integer", n=1, size=1, signed = F)
   iq_measurement <- readBin(con, "logical", n=1, size=1)
   sample_rate <- readBin(con, "integer", n=1, size=2, signed = F)
+  if(file_version == 3) device_id <- readBin(con, "integer", n=1, size=4, signed=F)
 
   if(file_version == 1){
 
@@ -63,7 +64,7 @@ index_binary_file <- function(filename, id, location_id, read_data=F, debug=F, s
     }
   }
 
-  if(file_version == 2){
+  if(file_version == 2 | file_version == 3){
     # number of records:
     n <- ((size-12)/(num_fft_bins+4+8)) # 11 file header bytes
     n
@@ -114,6 +115,7 @@ index_binary_file <- function(filename, id, location_id, read_data=F, debug=F, s
 
   dbWriteTable(content, "bin_index", index_table, append=T, row.names=F)
   #read_data <- dbGetQuery(content, "SELECT * FROM bin_index WHERE file_id = 86 ORDER BY timestamp DESC limit 10;")
+  if(shiny_notification) removeNotification(filename)
   if(read_data) return(data)
 }
 
