@@ -33,6 +33,7 @@ source("read_csv.R")
 source("read_from_byte_index.R")
 source("process_bin_to_db.R")
 source("passing_car_geometry.R")
+source("user_management.R")
 load("osmdata_splitted.RData")
 library(mailR)
 
