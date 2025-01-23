@@ -6,10 +6,10 @@
 }
 
 .logo svg .arrow{
-    fill: #0c4b4c;
-    stroke: #0c4b4c;
     fill:#1fb76f;
     stroke:#1fb76f;
+    fill: #0c4b4c;
+    stroke: #0c4b4c;
 }
 
 .logo svg .arrow path{
@@ -20,8 +20,9 @@
 }
 
 .navbar.navbar-static-top{
-  background-color: #ffcc00;
+  background-color: #ffcc00 !important;
 }
+
 .bslib-sidebar-layout > .sidebar {
   background-color: #f4f4f4;
 }
@@ -33,6 +34,8 @@
 	--bs-btn-color: #fff;
 	--bs-btn-bg: #1fb76f;
 	--bs-btn-border-color: #1fb76f;
+	--bs-btn-bg: #0c4b4c;
+	--bs-btn-border-color: #0c4b4c;
 	--bs-btn-hover-color: #fff;
 	--bs-btn-hover-bg: #289260;
 	--bs-btn-hover-border-color: #289260;
