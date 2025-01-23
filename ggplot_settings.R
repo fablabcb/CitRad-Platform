@@ -14,8 +14,8 @@ theme_set(theme_linedraw() +
               legend.key = element_rect(fill="transparent", color=NA),
               legend.title = element_text(size=14),
               legend.text = element_text(size=13),
-              legend.position="right",
-              legend.direction="vertical",
+              legend.position="top",
+              legend.direction="horizontal",
               # axis.title.y=element_text(angle=90, vjust=15)
             )
 )

@@ -15,7 +15,8 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
 
         selectInput(ns("date"), label = "Messdatum", choices = c(dates_with_data$day)),
         selectInput(ns("car_detections_source"), label="Datenquelle", choices=c("Erkennung auf Gerät"="sensor unit", "Erkennung auf Server"="R script")),
-        girafeOutput(ns("scatterplot"), height = "500px"),
+        checkboxInput(ns("heatmap"), label = "Heatmap"),
+        girafeOutput(ns("scatterplot"), height = "550px"),
         plotOutput(ns("spectrum"), height = "450px", width = "600px"),
         fluidRow(class="spectrum_navigation",
           column(3,
@@ -57,12 +58,29 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
         need(nrow(car_detections())>0, "Keine Daten zu diesem Standort vorhanden")
       )
 
+      direction = location_details()$direction
+
       scatterplot <- car_detections() %>%
+        mutate(Fahrtrichtung = azimuth_to_direction(c(direction+180, direction))[(isForward==1)+1]) %>%
         ggplot() +
-        aes(x=timestamp, y=medianSpeed, tooltip = paste(timestamp, "\n", round(medianSpeed), " km/h"), data_id = id) +
-        scale_y_continuous(breaks=(1:12)*10, minor_breaks = F, name="speed (km/h)") +
-        geom_point_interactive() +
-        geom_hline(yintercept = location_details()$osm_speed, col="red")
+        scale_y_continuous(breaks=(1:12)*10, minor_breaks = F, name="Geschwindigkeit (km/h)") +
+        scale_x_datetime("Uhrzeit") +
+        guides(fill="none", col="none")
+
+      if(input$heatmap){
+        scatterplot <- scatterplot +
+          aes(x=timestamp, y=medianSpeed, tooltip=stat(count)) +
+          scale_fill_viridis_c() +
+          geom_bin_2d_interactive(binwidth=c(60*60, 5), show.legend=T, drop=T) +
+          geom_hline(yintercept = location_details()$osm_speed, col="red") +
+          facet_grid(Fahrtrichtung~.)
+      }else{
+        scatterplot <- scatterplot +
+          aes(x=timestamp, y=medianSpeed, col=Fahrtrichtung, tooltip = paste(timestamp, "\n", round(medianSpeed), " km/h\nFahrtrichtung", Fahrtrichtung), data_id = id) +
+          geom_hline(yintercept = location_details()$osm_speed, col="red") +
+          geom_point_interactive()
+      }
+
 
       breaks <- car_detections()$timestamp %>% round_date("hour") %>% unique
       #browser()
@@ -70,17 +88,19 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
         mutate(timestamp = floor_date(timestamp, "hour")) %>%
         group_by(timestamp, isForward) %>%
         summarise(Anzahl=n()) %>%
-        mutate(Richtung = c("<-", "->")[(isForward==1)+1]) %>%
+        mutate(Fahrtrichtung = azimuth_to_direction(c(direction+180, direction))[(isForward==1)+1]) %>%
         ggplot() +
-        aes(x=timestamp, y=Anzahl, group=Richtung, fill=Richtung, col=Richtung) +
+        aes(x=timestamp, y=Anzahl, group=Fahrtrichtung, fill=Fahrtrichtung, col=Fahrtrichtung) +
         geom_area(col=NA, alpha=.3, position = "identity") +
         geom_line(linewidth=1) +
-        geom_point_interactive(size=2, mapping = aes(data_id=paste(Richtung, timestamp), tooltip = paste0(format(timestamp, "%H:%M"), "\n", Anzahl, " Autos\npro Stunde"))) +
+        geom_point_interactive(size=2, mapping = aes(data_id=paste(Fahrtrichtung, timestamp), tooltip = paste0(format(timestamp, "%H:%M"), "\n", Anzahl, " Autos\npro Stunde"))) +
        #geom_histogram(aes(x=timestamp, group=(isForward==1), fill=isForward==1), col="black", breaks = breaks, position="dodge") +
-        scale_y_continuous(name="vehicles\nper hour")
+        scale_x_datetime("Uhrzeit") +
+        scale_y_continuous(name="Fahrzeuge\npro Stunde") +
+        guides(fill="none")
 
-      gg <- cars_per_hour / scatterplot + plot_layout(heights=c(2,3))
-      girafe(ggobj = gg, width_svg=1090/100, height_svg=500/100) %>% girafe_options(opts_selection(type="single"), opts_tooltip(zindex = 2000))
+      gg <- cars_per_hour / scatterplot + plot_layout(heights=c(2,4), guides = "collect")
+      girafe(ggobj = gg, width_svg=1090/100, height_svg=550/100) %>% girafe_options(opts_selection(type="single"), css="fill:inherit;stroke:yellow;r:10pt;", opts_tooltip(zindex = 2000))
       #ggplotly(gg, source="scatterplot_selected")
     })
 
@@ -140,7 +160,7 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
 
 
     location_details <- reactive({
-      dbGetQuery(content, str_glue("SELECT id, street_name, user_speedlimit, osm_speedlimit from sensor_locations WHERE id = {location_id()};"))
+      dbGetQuery(content, str_glue("SELECT id, street_name, user_speedlimit, osm_speedlimit, direction from sensor_locations WHERE id = {location_id()};"))
     })
 
 
