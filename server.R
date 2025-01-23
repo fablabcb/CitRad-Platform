@@ -29,11 +29,14 @@ function(input, output, session) {
 
   map_proxy <- reactive(maplibre_proxy("map", session))
   map_click <- reactive(input$map_click)
+  add_location <- eventReactive(input$add_location, input$add_location, ignoreInit = T, ignoreNULL = T)
 
+  show_locations <- reactive(input$show_locations)
 
+  hide_locations <- reactive(input$hide_locations)
 
-  output$add_location_UI <- SERVER_add_location("location_form", userID, map_click, map_proxy)
-  show_locations_server("show_locations", userID, map_proxy)
+  output$add_location_UI <- SERVER_add_location("location_form", userID, add_location, map_click, map_proxy)
+  output$show_locations_UI <- SERVER_show_locations("show_locations", userID, show_locations, hide_locations, map_proxy)
   SERVER_upload_data("upload_data", location_id = reactive(input$map_marker_id), show_upload=reactive(input$upload_data), reactive(userID()))
   SERVER_show_data("show_data", location_id = reactive(input$show_data_for_id), show_data=reactive(input$show_data), userID)
   SERVER_my_uploads("my_uploads", userID, reactive(input$show_uploads))

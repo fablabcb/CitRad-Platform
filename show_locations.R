@@ -1,22 +1,26 @@
-UI_show_locations <- function(id, settings=NULL){
-  ns <- NS(id)
-  list(
-    actionButton(ns("show_locations"), "zeige Standorte"),
-    checkboxInput(ns("only_my_locations"), label = "nur meine", value = F)
-  )
-}
-
-
-show_locations_server <- function(id, userID, map_proxy){
+SERVER_show_locations <- function(id, userID, show_locations_button, hide_locations_button, map_proxy){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
     locations <- reactiveVal()
 
-    observeEvent(list(input$show_locations, input$only_my_locations), {
-      if(input$only_my_locations){
-        count_query =  str_glue("SELECT count(id) FROM sensor_locations WHERE username = '{userID()}';")
-        query=str_glue("SELECT id, username, date_created, street_name, 'street_name.hsb', user_speedlimit, osm_speedlimit, direction, oneway, lanes, location_geom FROM sensor_locations WHERE username = \'{userID()}\';")
+    UI <- reactiveVal()
+
+    observeEvent(hide_locations_button(), {
+      map_proxy() %>%
+        clear_markers() %>%
+        clear_layer("sensors")
+      UI(NULL)
+    })
+
+
+    observeEvent(list(show_locations_button(), input$only_my_locations), {
+      if(!is.null(userID())) UI(checkboxInput(ns("only_my_locations"), label = "nur meine", value = F))
+
+
+      if(!is.null(userID()) && req(!is.null(input$only_my_locations)) && input$only_my_locations){
+          count_query =  str_glue("SELECT count(id) FROM sensor_locations WHERE username = '{userID()}';")
+          query=str_glue("SELECT id, username, date_created, street_name, 'street_name.hsb', user_speedlimit, osm_speedlimit, direction, oneway, lanes, location_geom FROM sensor_locations WHERE username = \'{userID()}\';")
       }else{
         count_query =  "SELECT count(id) FROM sensor_locations;"
         query="SELECT id, username, date_created, street_name, 'street_name.hsb', user_speedlimit, osm_speedlimit, direction, oneway, lanes, location_geom FROM sensor_locations;"
@@ -47,6 +51,10 @@ show_locations_server <- function(id, userID, map_proxy){
         showNotification("Keine Standorte vorhanden")
       }
     })
+
+    renderUI(
+      UI()
+    )
 
   })
 }

@@ -1,4 +1,4 @@
-SERVER_add_location <- function(id, userID, map_click, map_proxy){
+SERVER_add_location <- function(id, userID, add_location_Button, map_click, map_proxy){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
@@ -13,7 +13,8 @@ SERVER_add_location <- function(id, userID, map_click, map_proxy){
     sensor_direction <- reactiveVal()
     nearest_street <- reactiveVal()
 
-    observeEvent(input$add_location, {
+    observeEvent(add_location_Button(), {
+
       if(!isTruthy(userID())){
         showNotification("Sie müssen eingeloggt sein um Stationen hinzuzufügen")
         req(F)
@@ -182,7 +183,7 @@ SERVER_add_location <- function(id, userID, map_click, map_proxy){
         clear_markers() %>%
         clear_layer("nearest_points") %>%
         clear_layer("nearest_street_symbol")
-      UI(actionButton(ns("add_location"), "Standort hinzufügen"))
+      UI(NULL)
     })
 
     observeEvent(input$confirm_location_save, {
@@ -221,10 +222,10 @@ SERVER_add_location <- function(id, userID, map_click, map_proxy){
           clear_markers() %>%
           clear_layer("nearest_points") %>%
           clear_layer("nearest_street_symbol")
-        UI(actionButton(ns("add_location"), "Standort hinzufügen"))
+        UI(NULL)
     })
 
-    UI <- reactiveVal(actionButton(ns("add_location"), "Standort hinzufügen"))
+    UI <- reactiveVal()
 
     renderUI({
       UI()
