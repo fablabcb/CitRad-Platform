@@ -16,6 +16,10 @@
   fill: #fff;
 }
 
+.navbar-brand {
+	margin-right: 0px;
+}
+
 .navbar.navbar-static-top{
   background-color: #ffcc00 !important;
 }
