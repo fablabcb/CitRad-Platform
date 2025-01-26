@@ -52,6 +52,11 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
       dbGetQuery(content, query) %>% tibble
     })
 
+    bin_file_timespans <- reactive({
+      query <- str_glue("SELECT id, filename, start_time, end_time from file_uploads where filetype = 'spectrum' AND (date_trunc('day', start_time) = '{input$date}' OR date_trunc('day', end_time) = '{input$date}');")
+      dbGetQuery(content, query) %>% tibble
+    })
+
 
     output$scatterplot <- renderGirafe({
       validate(
@@ -77,6 +82,7 @@ SERVER_show_data <- function(id, location_id, show_data, userID){
       }else{
         scatterplot <- scatterplot +
           aes(x=timestamp, y=medianSpeed, col=Fahrtrichtung, tooltip = paste(timestamp, "\n", round(medianSpeed), " km/h\nFahrtrichtung", Fahrtrichtung), data_id = id) +
+          geom_rect_interactive(inherit.aes = F, ymin=0, ymax=120, aes(xmin = start_time, xmax = end_time, data_id = id, tooltip = basename(filename)), fill="gray90", data = bin_file_timespans()) +
           geom_hline(yintercept = location_details()$osm_speed, col="red") +
           geom_point_interactive()
       }
