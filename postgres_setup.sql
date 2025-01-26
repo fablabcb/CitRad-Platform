@@ -88,6 +88,7 @@ CREATE TABLE "file_uploads" (
     "end_time" timestamp,
     "indexed" boolean DEFAULT false,
     "processed" boolean DEFAULT false,
+    "hash" character(200)
     CONSTRAINT "fk_location_id" FOREIGN KEY ("location_id") REFERENCES "sensor_locations" ("id")
 );
 GRANT ALL PRIVILEGES ON TABLE file_uploads TO data_platform;

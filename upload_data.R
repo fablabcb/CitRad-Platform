@@ -47,23 +47,32 @@ SERVER_upload_data <- function(id, location_id, show_upload, userID){
         if(filetype == "csv" & str_detect(filename, "metrics")) filetype = "metrics"
         if(filetype == "csv" & str_detect(filename, "cars")) filetype = "car_detections"
         if(filetype %in% c("png", "jpg", "jpeg")) filetype = "image"
-        query <- str_glue(.na="DEFAULT",
-                          "INSERT INTO file_uploads (username, temporary_speedlimit, notes, filename, filetype, location_id) VALUES (
-                    '{userID()}',
-                    {as.integer(input$speedLimit)},
-                    '{input$notes}',
-                    '{filename}',
-                    '{filetype}',
-                    {location_id()}
-                    ) RETURNING id;")
 
-        id = dbGetQuery(content, query)$id
-        if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =T, shiny_notification=T)
-        if(filetype == "spectrum" & input$process_bin_file) process_bin_to_db(filename, file_id=id, location_id=location_id())
-        if(filetype == "metrics") read_metrics(filename, id, location_id=location_id())
-        if(filetype == "car_detections") read_car_detections(filename, id, location_id=location_id())
+        hash <- rlang::hash_file(file$datapath)
 
-        showNotification(str_glue("Datei {file$name} wurden hochgeladen mit id {id}."))
+        if(dbGetQuery(content, str_glue("Select count(*) from file_uploads where hash = '{hash}'"))$count > 0){
+          showNotification(str_glue("Datei {file$name} ist schon in der Datenbank vorhanden und wurde nicht noch einmal hochgeladen."))
+        }else{
+          query <- str_glue(.na="DEFAULT",
+                            "INSERT INTO file_uploads (username, temporary_speedlimit, notes, filename, filetype, location_id, hash) VALUES (
+                      '{userID()}',
+                      {as.integer(input$speedLimit)},
+                      '{input$notes}',
+                      '{filename}',
+                      '{filetype}',
+                      {location_id()},
+                      '{hash}'
+                      ) RETURNING id;")
+
+          id = dbGetQuery(content, query)$id
+          if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =T, shiny_notification=T)
+          if(filetype == "spectrum" & input$process_bin_file) process_bin_to_db(filename, file_id=id, location_id=location_id())
+          if(filetype == "metrics") read_metrics(filename, id, location_id=location_id())
+          if(filetype == "car_detections") read_car_detections(filename, id, location_id=location_id())
+
+          showNotification(str_glue("Datei {file$name} wurden hochgeladen mit id {id}."))
+
+        }
       }
       removeModal()
     })
