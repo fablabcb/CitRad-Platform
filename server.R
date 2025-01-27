@@ -2,7 +2,7 @@ library(shiny)
 
 
 function(input, output, session) {
-  userID <- SERVER_user_management("user_management")
+  userID <- SERVER_user_management("user_management", reactive(input$show_profile))
 
   output$map <- renderMaplibre({
     maplibre("./neutrino.de.json",

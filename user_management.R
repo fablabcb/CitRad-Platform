@@ -1,30 +1,55 @@
-SERVER_user_management <- function(id){
+SERVER_user_management <- function(id, show_profile){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
-    loginForm <- eventReactive(input$go_to_login, {
-      showModal(modalDialog(
-        size="s",
-        title="Bitte einloggen",
-        textInput(ns("username"), "Benutzername"),
-        passwordInput(ns("password"), "Passwort"),
-        p(textOutput(ns("login_errors"))),
-        footer = tagList(
-          actionButton(ns("login"), "Login", class="success")
-        )
-      ))
-      return(T)
+    userID <- reactiveVal()
+
+    profile_modal <- modalDialog(easyClose = T,
+                                 size="s",
+                                 title=span("Profil für", textOutput(ns("user_id_text"), inline = T)),
+                                 actionButton(ns("log_out"), "Ausloggen", icon= icon("right-from-bracket")),
+                                 actionButton(ns("change_password"), "Passwort ändern", icon = icon("key")),
+                                 actionButton(ns("delete_account"), "Account löschen", icon = icon("circle-xmark")),
+                                 footer = modalButton("Schließen")
+    )
+
+    output$user_id_text <- reactive({
+      req(userID())
     })
 
+    observeEvent(show_profile(), {
+      if(isTruthy(userID())){
+        showModal(profile_modal)
+      }else{
+        showModal(login_form)
+      }
+    })
+
+    login_form <- modalDialog(
+      easyClose = T,
+      size="s",
+      title="Bitte einloggen",
+      textInput(ns("username"), "Benutzername"),
+      passwordInput(ns("password"), "Passwort"),
+      p(textOutput(ns("login_errors"))),
+      p("oder ", actionLink(ns("go_to_registration"), "Registrieren")),
+      footer = tagList(
+        modalButton("Abbrechen"),
+        actionButton(ns("login"), "Login", class="btn-primary")
+      )
+    )
+
+
     observeEvent(input$go_to_registration, {
-      showModal(modalDialog(
+      showModal(modalDialog(easyClose = T,
         size="s",
-        title="Registrieren",
+        title="Registrierung",
         textInput(ns("register_username"), "Benutzername"),
         textInput(ns("register_email"), "E-mail"),
         passwordInput(ns("register_password"), "Passwort"),
         p(textOutput(ns("register_errors"))),
         footer = tagList(
+          modalButton("Abbrechen"),
           actionButton(ns("register"), "Registrieren", class="success")
         )
       ))
@@ -94,15 +119,14 @@ SERVER_user_management <- function(id){
 
 
 
-    userID <- reactiveVal()
 
     observe({
       text <- list()
       query <- parseQueryString(session$clientData$url_search)
+      #---- confirm email ----
       if (!is.null(query[['confirm_email']])) {
         user_id = query$user_id
         confirmation_code = query$confirm_email
-
 
         confirmation_code_hashed_db <- dbGetQuery(users, str_glue("SELECT code FROM email_confirmations WHERE user_id = '{user_id}'"))$code
 
@@ -113,6 +137,7 @@ SERVER_user_management <- function(id){
         }
         if(valid){
           dbSendQuery(users, str_glue("UPDATE users SET email_confirmed = true WHERE id = {user_id};"))
+          dbSendQuery(users, str_glue("UPDATE users SET activated = true WHERE id = {user_id};"))
 
           dbSendQuery(users, str_glue("DELETE FROM email_confirmations WHERE user_id = {user_id};"))
 
@@ -122,27 +147,93 @@ SERVER_user_management <- function(id){
         }
 
 
+        showModal(modalDialog(title="E-mail bestätigt", size="m", text, footer = list(modalButton("OK"))))
       }
-      text <- list(text, p("Loggen Sie sich ein um Daten hochzuladen oder Stationen zu erstellen."))
-      showModal(modalDialog(title="Willkommen", size="m", text,
-                            footer=list(
-                              actionButton(ns("view_only"), "nur Daten anschauen"),
-                              actionButton(ns("go_to_registration"), "Registrieren"),
-                              actionButton(ns("go_to_login"), "Login")
-                            )
-      ))
+      showNotification("Loggen Sie sich ein um Daten hochzuladen oder Stationen zu erstellen.")
     })
 
-    observeEvent(input$view_only, {
+    observeEvent(input$log_out, {
       userID(NULL)
+      showNotification("Benutzer ausgeloggt")
       removeModal()
     })
 
+    #---- delete account ----
+    observeEvent(input$delete_account, {
+      showModal(modalDialog(
+        title= "Account löschen",
+        p("Wollen Sie Ihren Account wirklich löschen?"),
+        footer=list(
+          actionButton(ns("cancel_delete_account"), "Abbrechen"),
+          actionButton(ns("confirm_delete_account"), "Löschen", class="btn-danger")
+        )
+      ))
+    })
+
+    observeEvent(input$cancel_delete_account, {
+      showModal(profile_modal)
+    })
+    observeEvent(input$confirm_delete_account, {
+      dbSendQuery(users, str_glue("UPDATE users SET activated = false WHERE username = '{userID()}';"))
+      showNotification(str_glue('User "{userID()}" wurde gelöscht'))
+      userID(NULL)
+      showNotification("Benutzer ausgeloggt")
+      removeModal()
+    })
+
+    #---- change password ----
+    observeEvent(input$change_password, {
+      showModal(modalDialog(title = "Passwort ändern",size = "s",
+                            passwordInput(ns("old_password"), "altes Passwort"),
+                            passwordInput(ns("new_password"), "neues Passwort"),
+                            passwordInput(ns("confirm_new_password"), "neues Passwort bestätigen"),
+                            p(textOutput(ns("change_password_errors"))),
+                            footer = list(
+                              modalButton("Abbrechen"),
+                              actionButton(ns("confirm_change_password"), "Ändern")
+                            )
+
+
+      ))
+    })
+
+    observeEvent(input$confirm_change_password, {
+      if(!isTruthy(input$old_password)){
+        output$change_password_errors <- renderText("Bitte geben Sie Ihr altes Passwort ein.")
+        return()
+      }
+      if(!isTruthy(input$new_password)){
+        output$change_password_errors <- renderText("Bitte geben Sie ein neues Passwort ein.")
+        return()
+      }
+      if(!isTruthy(input$confirm_new_password)){
+        output$change_password_errors <- renderText("Bitte bestätigen Sie das neue Passwort.")
+        return()
+      }
+      if(input$new_password != input$confirm_new_password){
+        output$change_password_errors <- renderText("Die Passwörter stimmen nicht überein.")
+        return()
+      }
+
+      userinfo <- dbGetQuery(users, str_glue("SELECT password_hash, id FROM users WHERE username = '{userID()}'"))
+
+      if(nrow(userinfo) == 1){
+        if(checkpw(input$old_password, userinfo$password_hash)){
+          password = hashpw(input$new_password)
+          dbSendQuery(users, str_glue("UPDATE users SET password_hash = '{password}' WHERE id = {userinfo$id};"))
+          showModal(profile_modal)
+          showNotification("Das Passwort wurde geändert.")
+        }else{
+          output$change_password_errors <- renderText("Das eingegebene alte Passwort ist ungültig.")
+          return()
+        }
+      }
+
+    })
 
     #----- process login form --------------
     observe({
       #return("nanu")
-      req(loginForm())
       req(input$login)
 
       shiny::isolate({
@@ -157,19 +248,25 @@ SERVER_user_management <- function(id){
 
 
         # Retrieve the stored hashed password from the database
-        userinfo <- dbGetQuery(users, str_glue("SELECT password_hash, id, email_confirmed FROM users WHERE username = '{input$username}'"))
+        userinfo <- dbGetQuery(users, str_glue("SELECT password_hash, id, email_confirmed, activated FROM users WHERE username = '{input$username}'"))
 
         if(nrow(userinfo) == 1){
           valid = checkpw(input$password, userinfo$password_hash)
           if(!userinfo$email_confirmed){
             output$login_errors <- renderText("Ihre Email-Adresse wurde noch nicht bestätigt.")
-            req(F)
+            return()
           }
+
         }else{
           valid = F
         }
 
         if(valid){
+          if(!userinfo$activated){
+            output$login_errors <- renderText("Account wurde gelöscht")
+            return()
+          }
+          output$login_errors <- renderText("")
           removeModal()
           userID(input$username)
         }else{

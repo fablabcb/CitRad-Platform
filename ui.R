@@ -8,12 +8,7 @@ page_navbar(title=div(class="logo", includeHTML("www/logo.svg")), fillable_mobil
               nav_item(actionLink("hide_locations", "verstecken", icon("eye-slash"))),
               nav_item(actionLink("add_location", "hinzufügen", icon("plus"))),
             ),
-            nav_menu(NULL, icon=icon("user"), align="right",
-                     nav_item(actionLink("show_profile", "Profil")),
-                     nav_item(actionLink("change_password", "Passwort ändern")),
-                     nav_item(actionLink("delete_account", "Account löschen"))
-
-            ),
+            nav_item(actionLink("show_profile", NULL, icon = icon("user"))),
 
 
             footer=list(

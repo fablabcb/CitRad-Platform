@@ -31,6 +31,10 @@
   --bs-accordion-bg: none;
 }
 
+.btn-default{
+	padding: 10px 15px;
+}
+
 .btn-primary {
 	--bs-btn-color: #fff;
 	--bs-btn-bg: #1fb76f;
@@ -182,5 +186,9 @@
 }
 
 .spectrum_navigation .btn {
+  margin-bottom: 15px;
+}
+
+.user_management-log_out .btn {
   margin-bottom: 15px;
 }
