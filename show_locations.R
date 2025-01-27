@@ -37,11 +37,16 @@ SERVER_show_locations <- function(id, userID, show_locations_button, hide_locati
 
         map_proxy() %>%
           clear_markers() %>%
+          clear_layer("sensor_locations") %>%
+          add_circle_layer(id="sensor_locations", source=st_as_sf(locations), circle_radius = 5, max_zoom = 16) %>%
           clear_layer("sensors") %>%
-          add_symbol_layer(id="sensors", icon_image = "icon-viewpoint", source=st_as_sf(locations), symbol_placement = "point",
+          add_symbol_layer(id="sensors", icon_offset = c(0,-9),
+                           icon_image = "icon-citrad_arrow", source=st_as_sf(locations), symbol_placement = "point",
+                           min_zoom = 16,
                            icon_size = 2,
-                           icon_rotate = -90,
+                           icon_rotate = c("get", "direction"),
                            icon_allow_overlap = T,
+                           icon_rotation_alignment = "map",
                            popup = "link")
           #add_markers(marker_id = "id", data=locations, popup = "street_name")
       }else{

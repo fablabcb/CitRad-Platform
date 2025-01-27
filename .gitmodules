@@ -1,0 +1,3 @@
+[submodule "versatiles-style"]
+	path = versatiles-style
+	url = git@github.com:fablabcb/versatiles-style.git
