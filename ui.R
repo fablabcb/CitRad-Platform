@@ -1,27 +1,45 @@
 library(shiny)
 
-page_navbar(title=div(class="logo", includeHTML("www/logo.svg")), fillable_mobile = T, window_title = "CitRad", collapsible = F,
-            theme = bs_theme("grid-float-breakpoint"="200px"),#
-            nav_spacer(),
-            nav_menu("Standorte", icon = icon("location-dot"),
-              nav_item(actionLink("show_locations", "anzeigen", icon("eye"))),
-              nav_item(actionLink("hide_locations", "verstecken", icon("eye-slash"))),
-              nav_item(actionLink("add_location", "hinzufügen", icon("plus"))),
-            ),
-            nav_item(actionLink("show_profile", NULL, icon = icon("user"))),
+page_fillable(fillable_mobile = T, window_title = "CitRad", collapsible = F,
 
+            div(class="citrad-content",
+              div(class="citrad-navbar",
+                  div(class="nav-items", div(class="logo", includeHTML("www/logo.svg"))),
+                  div(class="nav-items nav-spacer"),
+                  div(class="nav-items",
+                      div(class="dropdown", tabindex="1",
+                          div(class="dropbtn", icon("map"), span(class="label", "Karte")),
+                          div(class="dropdown-content",
+                              actionLink("show_satellite", "Luftbild", icon("satellite")),
+                              actionLink("show_speed", "Geschwindigkeit", icon("gauge-high")),
+                              actionLink("show_traffic", "Verkehr", icon("car-side"))
+                          )
+                      )
+                  ),
+                  div(class="nav-items",
+                    div(class="dropdown", tabindex="2",
+                      div(class="dropbtn", span(icon("location-dot")), span(class="label", "Standorte")),
+                      div(class="dropdown-content",
+                          actionLink("show_locations", "anzeigen", icon("eye")),
+                          actionLink("hide_locations", "verstecken", icon("eye-slash")),
+                          actionLink("add_location", "hinzufügen", icon("plus"))
+                      )
+                    )
+                  ),
 
-            footer=list(
-              maplibreOutput("map", height = "calc(100vh - 40px - 16px - 48px)"),
-              navset_bar(
-                nav_item(uiOutput("show_locations_UI")),
-                nav_item(uiOutput("add_location_UI")),
-                position = "fixed-bottom"
+                  div(class="nav-items", actionLink("show_profile", span(class="label", "Profil"), icon = icon("user")))
+
               ),
-
-              tags$head(
-                tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css")
-
+              div(class="map-area",
+                maplibreOutput("map", height = "100%")
+              ),
+              div(class="citrad-footer",
+                  uiOutput("show_locations_UI"),
+                  uiOutput("add_location_UI")
               )
             ),
+
+            tags$head(
+              tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css")
+            )
 )

@@ -24,6 +24,101 @@
   background-color: #ffcc00 !important;
 }
 
+.bslib-page-fill {
+	padding: 0;
+}
+
+.citrad-content {
+  height: 100vh;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+}
+
+.citrad-navbar {
+  width: 100vw;
+  background-color: #ffcc00;
+  color: #000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 10px;
+  gap: 10px;
+}
+
+.citrad-navbar .nav-items {
+  padding: 5px;
+}
+.citrad-navbar .nav-items a {
+  color: #000;
+  white-space: nowrap;
+	text-decoration: none;
+}
+
+.citrad-navbar .nav-items a i {
+	margin-right: 6px;
+}
+
+.citrad-navbar .nav-spacer {
+  flex-grow: 1;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.nav-items .label{
+  display: inline;
+}
+
+@media (max-width: 500px) {
+  .nav-items .label{
+    display: none;
+  }
+}
+
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1000;
+  border-radius: 5px;
+}
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  border-radius: 5px;
+}
+.dropdown-content a:hover, .dropdown-content a:focus {background-color: #ddd;}
+.dropdown:hover .dropdown-content, .dropdown:focus-within .dropdown-content {display: block;}
+
+.dropbtn .label {
+	margin-left: 4px;
+}
+
+
+.map-area {
+  flex-grow: 1;
+  padding: 10px;
+  width: 100vw;
+}
+
+.citrad-footer{
+  background-color: #ffcc00;
+  width: 100vw;
+  padding: 10px;
+}
+
 .bslib-sidebar-layout > .sidebar {
   background-color: #f4f4f4;
 }

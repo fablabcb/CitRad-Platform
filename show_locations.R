@@ -9,7 +9,8 @@ SERVER_show_locations <- function(id, userID, show_locations_button, hide_locati
     observeEvent(hide_locations_button(), {
       map_proxy() %>%
         clear_markers() %>%
-        clear_layer("sensors")
+        clear_layer("sensors") %>%
+        clear_layer("sensor_locations")
       UI(NULL)
     })
 
@@ -38,7 +39,7 @@ SERVER_show_locations <- function(id, userID, show_locations_button, hide_locati
         map_proxy() %>%
           clear_markers() %>%
           clear_layer("sensor_locations") %>%
-          add_circle_layer(id="sensor_locations", source=st_as_sf(locations), circle_radius = 5, max_zoom = 16) %>%
+          add_circle_layer(id="sensor_locations", source=st_as_sf(locations), circle_radius = 5, max_zoom = 16, popup = "link") %>%
           clear_layer("sensors") %>%
           add_symbol_layer(id="sensors", icon_offset = c(0,-9),
                            icon_image = "icon-citrad_arrow", source=st_as_sf(locations), symbol_placement = "point",

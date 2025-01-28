@@ -20,9 +20,9 @@ SERVER_add_location <- function(id, userID, add_location_Button, map_click, map_
         req(F)
       }
       UI(list(
-        p("Standort: ", textOutput(ns("selectedLocation"), inline = T)),
-        p(textOutput(ns("selected_street"), inline=T)),
-        p(textOutput(ns("street_specifics"), inline=T)),
+        p("Standort: ", textOutput(ns("selectedLocation"), inline = T),
+        textOutput(ns("selected_street"), inline=T),
+        textOutput(ns("street_specifics"), inline=T)),
         uiOutput(ns("direction")),
         checkboxInput(ns("reverse"), "Fahrtrichtung umkehren", value=FALSE),
         actionButton(ns("save_location"), "Standort speichern", class="btn-primary btn-block mt-10 mb-10"),
