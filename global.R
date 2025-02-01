@@ -42,6 +42,9 @@ options(shiny.maxRequestSize=100*1024^2)
 
 drv <- dbDriver("PostgreSQL")
 
+content <- dbConnect(drv, dbname = "content", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
+users <- dbConnect(drv, dbname = "users", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
+
 smtp_settings <- list(host.name = "w01f6c99.kasserver.com", port = 587,
      user.name = "m0738648",
      passwd = Sys.getenv("PLATFORM_MAIL_PW"), tls = TRUE)
