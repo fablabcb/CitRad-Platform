@@ -1,4 +1,5 @@
-library(shiny)
+users <- dbConnect(drv, dbname = "users", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
+content <- dbConnect(drv, dbname = "content", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
 
 
 function(input, output, session) {
@@ -44,8 +45,8 @@ function(input, output, session) {
 
   onStop(function(){
     cat(sprintf("Session %s was closed\n", session$token))
-    #dbDisconnect(users)
-    #dbDisconnect(content)
+    dbDisconnect(users)
+    dbDisconnect(content)
 
   })
 }

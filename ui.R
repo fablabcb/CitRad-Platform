@@ -1,5 +1,3 @@
-library(shiny)
-
 page_fillable(fillable_mobile = T, window_title = "CitRad", collapsible = F,
 
             div(class="citrad-content",
