@@ -7,3 +7,4 @@ uploads/*
 *.RData
 notes.md
 tests/*
+app_cache

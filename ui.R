@@ -38,6 +38,10 @@ page_fillable(fillable_mobile = T, window_title = "CitRad", collapsible = F,
             ),
 
             tags$head(
-              tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css")
+              tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css"),
+	                    tags$meta(width="device-width", "initial-scale"="1.0", "maximum-scale"="1.0", "user-scalable"="no"),
+              tags$meta(name="mobile-web-app-capable", content="yes"),
+              tags$meta(name="display", content="standalone")
+
             )
 )
