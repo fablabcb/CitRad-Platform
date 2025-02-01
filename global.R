@@ -20,6 +20,7 @@ library(viridisLite)
 #library(reactable)
 #library(reticulate)
 library(mailR)
+library(pool)
 
 source("ggplot_settings.R")
 source("add_location.R")
@@ -41,9 +42,13 @@ options(shiny.maxRequestSize=100*1024^2)
 
 
 drv <- dbDriver("PostgreSQL")
+content <- dbPool(drv, dbname = "content", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
+users <- dbPool(drv, dbname = "users", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
 
-content <- dbConnect(drv, dbname = "content", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
-users <- dbConnect(drv, dbname = "users", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
+onStop(function() {
+  poolClose(content)
+  poolClose(users)
+})
 
 smtp_settings <- list(host.name = "w01f6c99.kasserver.com", port = 587,
      user.name = "m0738648",
