@@ -1,4 +1,4 @@
-SERVER_my_uploads <- function(id, userID, show_uploads){
+SERVER_my_uploads <- function(id, content, userID, show_uploads){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 

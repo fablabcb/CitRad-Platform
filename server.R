@@ -1,9 +1,12 @@
-users <- dbConnect(drv, dbname = "users", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
-content <- dbConnect(drv, dbname = "content", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
-
 
 function(input, output, session) {
-  userID <- SERVER_user_management("user_management", reactive(input$show_profile))
+
+  content <- dbConnect(drv, dbname = "content", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
+  users <- dbConnect(drv, dbname = "users", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
+
+
+  userID <- SERVER_user_management("user_management", users, reactive(input$show_profile))
+
 
   output$map <- renderMaplibre({
     maplibre("./neutrino.de.json",
@@ -37,10 +40,10 @@ function(input, output, session) {
   hide_locations <- reactive(input$hide_locations)
 
   output$add_location_UI <- SERVER_add_location("location_form", userID, add_location, map_click, map_proxy)
-  output$show_locations_UI <- SERVER_show_locations("show_locations", userID, show_locations, hide_locations, map_proxy)
-  SERVER_upload_data("upload_data", location_id = reactive(input$map_marker_id), show_upload=reactive(input$upload_data), reactive(userID()))
-  SERVER_show_data("show_data", location_id = reactive(input$show_data_for_id), show_data=reactive(input$show_data), userID)
-  SERVER_my_uploads("my_uploads", userID, reactive(input$show_uploads))
+  output$show_locations_UI <- SERVER_show_locations("show_locations", userID, content, show_locations, hide_locations, map_proxy)
+  SERVER_upload_data("upload_data", content, location_id = reactive(input$map_marker_id), show_upload=reactive(input$upload_data), reactive(userID()))
+  SERVER_show_data("show_data", content, location_id = reactive(input$show_data_for_id), show_data=reactive(input$show_data), userID)
+  SERVER_my_uploads("my_uploads", content, userID, reactive(input$show_uploads))
 
 
   onStop(function(){

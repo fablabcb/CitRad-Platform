@@ -1,4 +1,4 @@
-SERVER_show_data <- function(id, location_id, show_data, userID){
+SERVER_show_data <- function(id, content, location_id, show_data, userID){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
