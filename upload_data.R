@@ -65,7 +65,7 @@ SERVER_upload_data <- function(id, content, location_id, show_upload, userID){
                       ) RETURNING id;")
 
           id = dbGetQuery(content, query)$id
-          if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =T, shiny_notification=T)
+          if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =F, shiny_notification=T)
           if(filetype == "spectrum" & input$process_bin_file) process_bin_to_db(filename, file_id=id, location_id=location_id())
           if(filetype == "metrics") read_metrics(filename, id, location_id=location_id())
           if(filetype == "car_detections") read_car_detections(filename, id, location_id=location_id())
