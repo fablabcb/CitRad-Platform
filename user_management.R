@@ -1,4 +1,4 @@
-SERVER_user_management <- function(id, show_profile){
+SERVER_user_management <- function(id, users, show_profile){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 

@@ -1,4 +1,4 @@
-SERVER_show_locations <- function(id, userID, show_locations_button, hide_locations_button, map_proxy){
+SERVER_show_locations <- function(id, userID, content, show_locations_button, hide_locations_button, map_proxy){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
