@@ -1,3 +1,4 @@
+renv::restore()
 library(shiny)
 library(bslib)
 library(bcrypt)
