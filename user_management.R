@@ -106,7 +106,7 @@ SERVER_user_management <- function(id, users, show_profile){
                   smtp = smtp_settings,
                   authenticate = TRUE,
                   timeout= 6000,
-                  debug=T,
+                  debug=F,
                   send = TRUE)
         showNotification(str_glue("Email Bestätigung verschickt an {input$register_email}."))
 

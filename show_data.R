@@ -160,7 +160,7 @@ SERVER_show_data <- function(id, content, location_id, show_data, userID){
         arrange(timestamp) %>%
         pull(byte_index) %>%
         unique()
-      data <- read_from_byte_index(filename, index, debug=T)
+      data <- read_from_byte_index(filename, index, debug=F)
       return(data)
     })
 
