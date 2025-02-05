@@ -1,8 +1,8 @@
-SERVER_user_management <- function(id, users, show_profile){
+SERVER_user_management <- function(id, users_db, show_profile){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
-    userID <- reactiveVal()
+    userInfo <- reactiveVal()
 
     profile_modal <- modalDialog(easyClose = T,
                                  size="s",
@@ -14,11 +14,11 @@ SERVER_user_management <- function(id, users, show_profile){
     )
 
     output$user_id_text <- reactive({
-      req(userID())
+      req(userInfo()$name)
     })
 
     observeEvent(show_profile(), {
-      if(isTruthy(userID())){
+      if(isTruthy(userInfo())){
         showModal(profile_modal)
       }else{
         showModal(login_form)
@@ -71,7 +71,7 @@ SERVER_user_management <- function(id, users, show_profile){
         }
       })
 
-      user_exists <- dbGetQuery(users, str_glue("SELECT count(id) as count FROM users WHERE username = '{input$register_username}'"))
+      user_exists <- dbGetQuery(users_db, str_glue("SELECT count(id) as count FROM users WHERE username = '{input$register_username}'"))
 
 
       if(user_exists$count ==1){
@@ -86,7 +86,7 @@ SERVER_user_management <- function(id, users, show_profile){
                         '{password}'
                         ) RETURNING id;")
 
-        id = dbGetQuery(users, query)$id
+        id = dbGetQuery(users_db, query)$id
         removeModal()
         showNotification(str_glue("Benutzer {input$register_username} registriert mit id {id}."))
 
@@ -97,7 +97,7 @@ SERVER_user_management <- function(id, users, show_profile){
                         '{id}'
                         );")
 
-        dbSendQuery(users, query)
+        dbSendQuery(users_db, query)
 
         send.mail(from = "no-reply@citrad.de",
                   to = input$register_email,
@@ -128,7 +128,7 @@ SERVER_user_management <- function(id, users, show_profile){
         user_id = query$user_id
         confirmation_code = query$confirm_email
 
-        confirmation_code_hashed_db <- dbGetQuery(users, str_glue("SELECT code FROM email_confirmations WHERE user_id = '{user_id}'"))$code
+        confirmation_code_hashed_db <- dbGetQuery(users_db, str_glue("SELECT code FROM email_confirmations WHERE user_id = '{user_id}'"))$code
 
         if(length(confirmation_code_hashed_db) == 1){
           valid = checkpw(confirmation_code, confirmation_code_hashed_db)
@@ -136,10 +136,10 @@ SERVER_user_management <- function(id, users, show_profile){
           valid = F
         }
         if(valid){
-          dbSendQuery(users, str_glue("UPDATE users SET email_confirmed = true WHERE id = {user_id};"))
-          dbSendQuery(users, str_glue("UPDATE users SET activated = true WHERE id = {user_id};"))
+          dbSendQuery(users_db, str_glue("UPDATE users SET email_confirmed = true WHERE id = {user_id};"))
+          dbSendQuery(users_db, str_glue("UPDATE users SET activated = true WHERE id = {user_id};"))
 
-          dbSendQuery(users, str_glue("DELETE FROM email_confirmations WHERE user_id = {user_id};"))
+          dbSendQuery(users_db, str_glue("DELETE FROM email_confirmations WHERE user_id = {user_id};"))
 
           text <- list(text, p("Ihre Email wurde bestätigt."))
         }else{
@@ -153,7 +153,7 @@ SERVER_user_management <- function(id, users, show_profile){
     })
 
     observeEvent(input$log_out, {
-      userID(NULL)
+      userInfo(NULL)
       showNotification("Benutzer ausgeloggt")
       removeModal()
     })
@@ -174,9 +174,9 @@ SERVER_user_management <- function(id, users, show_profile){
       showModal(profile_modal)
     })
     observeEvent(input$confirm_delete_account, {
-      dbSendQuery(users, str_glue("UPDATE users SET activated = false WHERE username = '{userID()}';"))
-      showNotification(str_glue('User "{userID()}" wurde gelöscht'))
-      userID(NULL)
+      dbSendQuery(users_db, str_glue("UPDATE users SET activated = false WHERE id = '{userInfo()$id}';"))
+      showNotification(str_glue('User "{userInfo()$name}" wurde gelöscht'))
+      userInfo(NULL)
       showNotification("Benutzer ausgeloggt")
       removeModal()
     })
@@ -215,12 +215,12 @@ SERVER_user_management <- function(id, users, show_profile){
         return()
       }
 
-      userinfo <- dbGetQuery(users, str_glue("SELECT password_hash, id FROM users WHERE username = '{userID()}'"))
+      userinfo <- dbGetQuery(users_db, str_glue("SELECT password_hash, id FROM users WHERE id = '{userInfo()$id}'"))
 
       if(nrow(userinfo) == 1){
         if(checkpw(input$old_password, userinfo$password_hash)){
           password = hashpw(input$new_password)
-          dbSendQuery(users, str_glue("UPDATE users SET password_hash = '{password}' WHERE id = {userinfo$id};"))
+          dbSendQuery(users_db, str_glue("UPDATE users SET password_hash = '{password}' WHERE id = {userinfo$id};"))
           showModal(profile_modal)
           showNotification("Das Passwort wurde geändert.")
         }else{
@@ -248,7 +248,7 @@ SERVER_user_management <- function(id, users, show_profile){
 
 
         # Retrieve the stored hashed password from the database
-        userinfo <- dbGetQuery(users, str_glue("SELECT password_hash, id, email_confirmed, activated FROM users WHERE username = '{input$username}'"))
+        userinfo <- dbGetQuery(users_db, str_glue("SELECT password_hash, id, email_confirmed, activated FROM users WHERE username = '{input$username}'"))
 
         if(nrow(userinfo) == 1){
           valid = checkpw(input$password, userinfo$password_hash)
@@ -268,7 +268,7 @@ SERVER_user_management <- function(id, users, show_profile){
           }
           output$login_errors <- renderText("")
           removeModal()
-          userID(input$username)
+          userInfo(tibble(name=userinfo$name, id=userinfo$id))
         }else{
           output$login_errors <- renderText("Die Kombination aus Benutzername und Passwort ist ungültig.")
           message("failed login attempt for user ", input$username)
@@ -278,9 +278,9 @@ SERVER_user_management <- function(id, users, show_profile){
     })
 
     output$userIDtext <- renderText({
-      userID()
+      userInfo()$name
     })
 
-    return(userID)
+    return(userInfo)
   })
 }

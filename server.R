@@ -2,8 +2,9 @@
 function(input, output, session) {
   cat(sprintf("New session %s\n", session$token))
 
-
-  userID <- SERVER_user_management("user_management", users, reactive(input$show_profile))
+  userInfo <- SERVER_user_management("user_management", users_db, reactive(input$show_profile))
+  open_admin_panel <- reactive(input$open_admin_panel)
+  user_roles <- SERVER_administration("administration", reactive(userInfo()$id), users_db, open_admin_panel)
 
 
   output$map <- renderMaplibre({
@@ -11,11 +12,12 @@ function(input, output, session) {
     count_query =  "SELECT count(id) FROM sensor_locations;"
     query="SELECT id, username, date_created, street_name, 'street_name.hsb', user_speedlimit, osm_speedlimit, direction, oneway, lanes, location_geom FROM sensor_locations;"
 
-    count <- dbGetQuery(content, count_query)
-    locations <- pgGetGeom(content, query=query, geom="location_geom")
+    count <- suppressMessages(dbGetQuery(content, count_query))
+    locations <- suppressMessages(pgGetGeom(content, query=query, geom="location_geom"))
+
     locations <- locations %>% mutate(link = str_glue('<p class="fs-6"><span class="badge bg-secondary">{id}</span> <b>{street_name}</b></p>
-                                                        <p><button onclick="Shiny.onInputChange(\'map_marker_id\', {id}); Shiny.onInputChange(\'upload_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten hochladen</button></p>
-                                                        <p><button onclick="Shiny.onInputChange(\'show_data_for_id\', {id}); Shiny.onInputChange(\'show_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten anzeigen</button></p>'))
+                                                      <p><button onclick="Shiny.onInputChange(\'map_marker_id\', {id}); Shiny.onInputChange(\'upload_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten hochladen</button></p>
+                                                      <p><button onclick="Shiny.onInputChange(\'show_data_for_id\', {id}); Shiny.onInputChange(\'show_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten anzeigen</button></p>'))
 
 
     maplibre("./neutrino.de.json",
@@ -58,17 +60,17 @@ function(input, output, session) {
 
   hide_locations <- reactive(input$hide_locations)
 
-  output$add_location_UI <- SERVER_add_location("location_form", userID, add_location, map_click, map_proxy)
-  output$show_locations_UI <- SERVER_show_locations("show_locations", userID, content, show_locations, hide_locations, map_proxy)
-  SERVER_upload_data("upload_data", content, location_id = reactive(input$map_marker_id), show_upload=reactive(input$upload_data), reactive(userID()))
-  SERVER_show_data("show_data", content, location_id = reactive(input$show_data_for_id), show_data=reactive(input$show_data), userID)
-  SERVER_my_uploads("my_uploads", content, userID, reactive(input$show_uploads))
+  output$add_location_UI <- SERVER_add_location("location_form", reactive(userInfo()$id), add_location, map_click, map_proxy)
+  output$show_locations_UI <- SERVER_show_locations("show_locations", reactive(userInfo()$id), content, show_locations, hide_locations, map_proxy)
+  SERVER_upload_data("upload_data", content, location_id = reactive(input$map_marker_id), show_upload=reactive(input$upload_data), reactive(userInfo()$id))
+  SERVER_show_data("show_data", content, location_id = reactive(input$show_data_for_id), show_data=reactive(input$show_data))
+  SERVER_my_uploads("my_uploads", content, reactive(userInfo()$id), reactive(input$show_uploads))
+
+
 
 
   onStop(function(){
     cat(sprintf("Session %s was closed\n", session$token))
-    # dbDisconnect(users)
-    # dbDisconnect(content)
 
   })
 }

@@ -1,5 +1,6 @@
 renv::restore()
 library(shiny)
+library(shinyjs)
 library(bslib)
 library(bcrypt)
 library(stringi)
@@ -22,6 +23,7 @@ library(viridisLite)
 #library(reticulate)
 library(mailR)
 library(pool)
+library(DT)
 
 source("ggplot_settings.R")
 source("add_location.R")
@@ -30,6 +32,7 @@ source("upload_data.R")
 source("show_data.R")
 source("my_uploads.R")
 source("user_management.R")
+source("administration.R")
 
 source("index_binary_file.R")
 source("read_csv.R")
@@ -44,11 +47,11 @@ options(shiny.maxRequestSize=100*1024^2)
 
 drv <- dbDriver("PostgreSQL")
 content <- dbPool(drv, dbname = "content", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
-users <- dbPool(drv, dbname = "users", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
+users_db <- dbPool(drv, dbname = "users", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
 
 onStop(function() {
   poolClose(content)
-  poolClose(users)
+  poolClose(users_db)
 })
 
 smtp_settings <- list(host.name = "w01f6c99.kasserver.com", port = 587,

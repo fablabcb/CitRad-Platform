@@ -46,6 +46,21 @@ CREATE TABLE email_confirmations (
 );
 GRANT ALL PRIVILEGES ON TABLE email_confirmations TO data_platform;
 
+CREATE TYPE role AS ENUM ('user_admin', 'location_admin', 'data_admin', 'validation');
+CREATE TABLE user_roles (
+  "id" SERIAL PRIMARY KEY NOT NULL,
+  "user_id" integer NOT NULL,
+  "role" role,
+  CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+);
+GRANT ALL PRIVILEGES ON TABLE user_roles TO data_platform;
+GRANT ALL PRIVILEGES ON SEQUENCE user_roles_id_seq TO data_platform;
+#INSERT INTO user_roles (user_id, role) VALUES (4, 'user_admin');
+#INSERT INTO user_roles (user_id, role) VALUES (4, 'location_admin');
+#INSERT INTO user_roles (user_id, role) VALUES (4, 'data_admin');
+#INSERT INTO user_roles (user_id, role) VALUES (4, 'validation');
+
+
 
 
 \c content
