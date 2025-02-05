@@ -34,7 +34,7 @@ source("user_management.R")
 source("index_binary_file.R")
 source("read_csv.R")
 source("read_from_byte_index.R")
-source("process_bin_to_db.R")
+#source("process_bin_to_db.R")
 source("passing_car_geometry.R")
 load("osmdata_splitted.RData")
 
