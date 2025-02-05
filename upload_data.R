@@ -11,7 +11,7 @@ SERVER_upload_data <- function(id, content, location_id, show_upload, userID){
         title=str_glue("Daten hochladen für Standort {location_id()}"),
         textAreaInput(ns("notes"), "Notizen zum Upload", placeholder = "Schreibe uns wenn es bei diesen Daten etwas besonderes gibt, z.B.: \n• \"zurzeit Baustelle\", \n• \"temporär veränderte Geschwindigkeitsbegrenzung\" oder \n• \"erhöhtes Verkehrsaufkommen wegen Umleitung\"", rows = 5, resize="vertical", width = "100%"),
         numericInput(ns("speedLimit"), "Änderung Geschwindigkeitsbegrenzung", value = NULL, min = 10, max=100, step = 10, width = "100%"),
-        checkboxInput(ns("process_bin_file"), "bin-File verarbeiten", value = T),
+        #checkboxInput(ns("process_bin_file"), "bin-File verarbeiten", value = T),
         fileInput(ns("files"), "Datei auswählen", multiple = T, accept = c(".bin",".csv", ".png", ".jpg", ".jpeg"), width = "100%", placeholder = "bisher keine Datei ausgewählt", buttonLabel = "Auswählen"),
 
         footer = tagList(
@@ -66,7 +66,7 @@ SERVER_upload_data <- function(id, content, location_id, show_upload, userID){
 
           id = dbGetQuery(content, query)$id
           if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =F, shiny_notification=T)
-          if(filetype == "spectrum" & input$process_bin_file) process_bin_to_db(filename, file_id=id, location_id=location_id())
+          #if(filetype == "spectrum" & input$process_bin_file) process_bin_to_db(filename, file_id=id, location_id=location_id())
           if(filetype == "metrics") read_metrics(filename, id, location_id=location_id())
           if(filetype == "car_detections") read_car_detections(filename, id, location_id=location_id())
 
