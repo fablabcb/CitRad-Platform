@@ -1,5 +1,5 @@
 page_fillable(fillable_mobile = T, window_title = "CitRad", collapsible = F,
-
+            useShinyjs(),
             div(class="citrad-content",
               div(class="citrad-navbar",
                   div(class="nav-items", div(class="logo", includeHTML("www/logo.svg"))),
@@ -25,7 +25,8 @@ page_fillable(fillable_mobile = T, window_title = "CitRad", collapsible = F,
                     )
                   ),
 
-                  div(class="nav-items", actionLink("show_profile", span(class="label", "Profil"), icon = icon("user")))
+                  div(class="nav-items", actionLink("show_profile", span(class="label", "Profil"), icon = icon("user"))),
+                  shinyjs::hidden(div(id="admin_menu", class="nav-items", actionLink("open_admin_panel", span(class="label", "Admin"), icon= icon("users-gear"))))
 
               ),
               div(class="map-area",
