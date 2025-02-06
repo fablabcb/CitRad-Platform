@@ -23,7 +23,7 @@ library(viridisLite)
 #library(reticulate)
 library(mailR)
 library(pool)
-library(DT)
+library(reactable)
 
 source("ggplot_settings.R")
 source("add_location.R")
@@ -63,4 +63,19 @@ azimuth_to_direction <- function(azimuth) {
                   "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW")
   index <- round(azimuth / 22.5) %% 16 + 1
   return(directions[index])
+}
+
+sql_bool <- function(bool){
+  if(bool){
+    return("true")
+  }else{
+    return("false")
+  }
+}
+reactable_checkmark_cell <- function(value) {
+  if (value) {
+    span("\U2714", class="checkmark")
+  } else {
+    span("×", class="cross")
+  }
 }
