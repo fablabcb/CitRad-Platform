@@ -287,3 +287,30 @@
 .user_management-log_out .btn {
   margin-bottom: 15px;
 }
+
+/* admin table */
+
+.checkmark {
+  color: green;
+}
+
+.cross {
+  colosr: lightgray;
+}
+
+.rt-select-input[type="radio"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.rt-select-input[type="radio"]::before {
+  content: "\270E"; /* pencil icon */
+  font-size: 20px;
+  position: relative;
+  top: -2px;
+}
+
