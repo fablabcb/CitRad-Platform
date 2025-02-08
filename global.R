@@ -41,6 +41,7 @@ source("read_from_byte_index.R")
 source("passing_car_geometry.R")
 load("osmdata_splitted.RData")
 
+debug=T
 
 options(shiny.maxRequestSize=100*1024^2)
 
