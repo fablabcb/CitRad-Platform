@@ -264,7 +264,7 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
       dbGetQuery(content, str_glue("DELETE FROM car_detections WHERE location_id = {location_to_edit()$id};"))
       dbGetQuery(content, str_glue("DELETE FROM bin_index WHERE location_id = {location_to_edit()$id};"))
       dbGetQuery(content, str_glue("DELETE FROM raw_metrics WHERE location_id = {location_to_edit()$id};"))
-      dbGetQuery(content, str_glue("DELETE FROM file_uploads WHERE location_id = {location_to_edit()$id};"))
+      dbGetQuery(content, str_glue("DELETE FROM file_uploads WHERE location_id = {location_to_edit()$id} AND username = '{user_to_edit()$username}';"))
       update_locations(update_locations()+1)
       showNotification(str_glue("Alle Daten von Standort {location_to_edit()$id} wurden gelöscht."))
       showModal(location_details_modal())
