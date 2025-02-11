@@ -100,7 +100,7 @@ index_binary_file <- function(filename, id, location_id, read_data=F, debug=F, s
               iq_measurement = {c('false', 'true')[iq_measurement+1]},
               indexed = true
             WHERE id = '{id}'")
-  dbSendQuery(content, query)
+  dbGetQuery(content, query)
   #dbGetQuery(content, "SELECT * FROM file_uploads WHERE indexed=true;")
 
   #---- write bin index ----
