@@ -60,11 +60,11 @@ function(input, output, session) {
 
   hide_locations <- reactive(input$hide_locations)
 
-  output$add_location_UI <- SERVER_add_location("location_form", reactive(userInfo()$id), add_location, map_click, map_proxy)
-  output$show_locations_UI <- SERVER_show_locations("show_locations", reactive(userInfo()$id), content, show_locations, hide_locations, map_proxy)
-  SERVER_upload_data("upload_data", content, location_id = reactive(input$map_marker_id), show_upload=reactive(input$upload_data), reactive(userInfo()$id))
+  output$add_location_UI <- SERVER_add_location("location_form", reactive(userInfo()$name), add_location, map_click, map_proxy)
+  output$show_locations_UI <- SERVER_show_locations("show_locations", reactive(userInfo()$name), content, show_locations, hide_locations, map_proxy)
+  SERVER_upload_data("upload_data", content, location_id = reactive(input$map_marker_id), show_upload=reactive(input$upload_data), reactive(userInfo()$name))
   SERVER_show_data("show_data", content, location_id = reactive(input$show_data_for_id), show_data=reactive(input$show_data))
-  SERVER_my_uploads("my_uploads", content, reactive(userInfo()$id), reactive(input$show_uploads))
+  SERVER_my_uploads("my_uploads", content, reactive(userInfo()$name), reactive(input$show_uploads))
 
 
 
