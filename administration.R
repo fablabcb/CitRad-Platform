@@ -34,7 +34,7 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
     })
 
     user_admin_modal <- reactive({
-      modalDialog(title="Administration", size = "xl", footer=modalButton("Schließen"),
+      modalDialog(title="Administration", size = "xl", footer=modalButton("Schließen"), easyClose = T,
         reactableOutput(ns("user_administration_table")))
     })
 
@@ -74,7 +74,7 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
     user_details_modal <- reactive({
       if(debug) message("building user details modal")
       user = req(user_to_edit())
-      modalDialog(title="Benutzer bearbeiten", size="m",
+      modalDialog(title="Benutzer bearbeiten", size="m", easyClose = T,
                   textInput(ns("username"), "Benutzername", value = user$username),
                   checkboxInput(ns("email_confirmed"), "email_confirmed", user$email_confirmed),
                   checkboxInput(ns("activated"), "aktiviert", user$activated),
@@ -129,7 +129,7 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
 
     user_location_modal <- reactive({
       if(debug) message("build locations modal")
-      modalDialog(size = "xl",
+      modalDialog(size = "xl",  easyClose = T,
                   title = str_glue("Standorte von Benutzer "), #{user_to_edit()$username}
                   reactableOutput(ns("user_locations_table")),
                   footer = list(
@@ -153,7 +153,9 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
       if(debug) message("query user locations")
       req(user_roles()$user_admin)
       update_locations()
+      #browser()
       location_files <- dbGetQuery(content, str_glue("SELECT location_id, count(*) FROM file_uploads GROUP BY location_id;"))
+      #query <- str_glue("SELECT id, street_name, date_created, user_speedlimit, notes, direction, \"street_name:hsb\", osm_speedlimit, oneway, lanes, username from sensor_locations;")
       query <- str_glue("SELECT id, street_name, date_created, user_speedlimit, notes, direction, \"street_name:hsb\", osm_speedlimit, oneway, lanes from sensor_locations WHERE username = '{user_to_edit()$username}';")
 
       dbGetQuery(content, query) %>%
@@ -189,7 +191,7 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
     location_details_modal <- reactive({
       if(debug) message("building location details modal")
       location = req(location_to_edit())
-      modalDialog(title="Standort bearbeiten", size="m",
+      modalDialog(title="Standort bearbeiten", size="m",  easyClose = T,
                   p("id: ", location$id),
                   p("Straßenname: ", location$street_name),
                   p("Straßenname Sorbisch: ", location$`street_name:hsb`),
