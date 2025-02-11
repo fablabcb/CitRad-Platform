@@ -1,4 +1,4 @@
-SERVER_upload_data <- function(id, content, location_id, show_upload, userID){
+SERVER_upload_data <- function(id, db, location_id, show_upload, userID){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
@@ -50,12 +50,12 @@ SERVER_upload_data <- function(id, content, location_id, show_upload, userID){
 
         hash <- rlang::hash_file(file$datapath)
 
-        if(dbGetQuery(content, str_glue("Select count(*) from file_uploads where hash = '{hash}'"))$count > 0){
+        if(dbGetQuery(db, str_glue("Select count(*) from file_uploads where hash = '{hash}'"))$count > 0){
           showNotification(str_glue("Datei {file$name} ist schon in der Datenbank vorhanden und wurde nicht noch einmal hochgeladen."))
         }else{
           query <- str_glue(.na="DEFAULT",
-                            "INSERT INTO file_uploads (username, temporary_speedlimit, notes, filename, filetype, location_id, hash) VALUES (
-                      '{userID()}',
+                            "INSERT INTO file_uploads (user_id, temporary_speedlimit, notes, filename, filetype, location_id, hash) VALUES (
+                      {userID()},
                       {as.integer(input$speedLimit)},
                       '{input$notes}',
                       '{filename}',
@@ -64,7 +64,7 @@ SERVER_upload_data <- function(id, content, location_id, show_upload, userID){
                       '{hash}'
                       ) RETURNING id;")
 
-          id = dbGetQuery(content, query)$id
+          id = dbGetQuery(db, query)$id
           if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =F, shiny_notification=T)
           #if(filetype == "spectrum" & input$process_bin_file) process_bin_to_db(filename, file_id=id, location_id=location_id())
           #if(filetype == "metrics") read_metrics(filename, id, location_id=location_id())

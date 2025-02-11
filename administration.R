@@ -1,4 +1,4 @@
-SERVER_administration <- function(id, userID, users_db, open_admin_panel){
+SERVER_administration <- function(id, userID, db, open_admin_panel){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
@@ -7,7 +7,7 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
     #---- detect admin --------
     user_roles <- reactive({
       if(isTruthy(userID())){
-        dbGetQuery(users_db, str_glue("SELECT user_admin, location_admin, data_admin, validation from users where id = {req(userID())}"))
+        dbGetQuery(db, str_glue("SELECT user_admin, location_admin, data_admin, validation from users where id = {req(userID())}"))
       }else{
         NULL
       }
@@ -30,7 +30,7 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
       if(debug) message("query user table")
       req(user_roles()$user_admin)
       update_users()
-      dbGetQuery(users_db, "SELECT id, username, email_confirmed, activated, user_admin, location_admin, data_admin, validation from users ORDER BY username;")
+      dbGetQuery(db, "SELECT id, username, email_confirmed, activated, user_admin, location_admin, data_admin, validation from users ORDER BY username;")
     })
 
     user_admin_modal <- reactive({
@@ -104,7 +104,7 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
       if(debug) message("confirming user edit")
       req(user_roles()$user_admin)
       user_id = user_to_edit()$id
-      dbGetQuery(users_db, str_glue("UPDATE users SET
+      dbGetQuery(db, str_glue("UPDATE users SET
                                      username = '{input$username}',
                                      email_confirmed = {sql_bool(input$email_confirmed)},
                                      activated = {sql_bool(input$activated)},
@@ -154,11 +154,11 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
       req(user_roles()$user_admin)
       update_locations()
       #browser()
-      location_files <- dbGetQuery(content, str_glue("SELECT location_id, count(*) FROM file_uploads GROUP BY location_id;"))
+      location_files <- dbGetQuery(db, str_glue("SELECT location_id, count(*) FROM file_uploads GROUP BY location_id;"))
       #query <- str_glue("SELECT id, street_name, date_created, user_speedlimit, notes, direction, \"street_name:hsb\", osm_speedlimit, oneway, lanes, username from sensor_locations;")
-      query <- str_glue("SELECT id, street_name, date_created, user_speedlimit, notes, direction, \"street_name:hsb\", osm_speedlimit, oneway, lanes from sensor_locations WHERE username = '{user_to_edit()$username}';")
+      query <- str_glue("SELECT id, street_name, date_created, user_speedlimit, notes, direction, \"street_name:hsb\", osm_speedlimit, oneway, lanes from sensor_locations WHERE user_id = {user_to_edit()$id};")
 
-      dbGetQuery(content, query) %>%
+      dbGetQuery(db, query) %>%
         tibble %>%
         left_join(location_files, by=join_by("id"=="location_id")) %>%
         mutate(count = if_else(is.na(count), 0, count))
@@ -232,7 +232,7 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
       location_id = location_to_edit()$id
       direction = location_to_edit()$direction
       if(input$reverse_direction) direction <- (direction + 180) %% 360
-      dbGetQuery(content, str_glue("UPDATE sensor_locations SET
+      dbGetQuery(db, str_glue("UPDATE sensor_locations SET
                                      notes = '{input$notes}',
                                      user_speedlimit = '{input$user_speedlimit}',
                                      direction = '{direction}'
@@ -261,10 +261,10 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
 
     observeEvent(input$confirm_data_delete,  ignoreInit = T,{
       if(debug) message("confirm data delete")
-      dbGetQuery(content, str_glue("DELETE FROM car_detections WHERE location_id = {location_to_edit()$id};"))
-      dbGetQuery(content, str_glue("DELETE FROM bin_index WHERE location_id = {location_to_edit()$id};"))
-      dbGetQuery(content, str_glue("DELETE FROM raw_metrics WHERE location_id = {location_to_edit()$id};"))
-      dbGetQuery(content, str_glue("DELETE FROM file_uploads WHERE location_id = {location_to_edit()$id} AND username = '{user_to_edit()$username}';"))
+      dbGetQuery(db, str_glue("DELETE FROM car_detections WHERE location_id = {location_to_edit()$id};"))
+      dbGetQuery(db, str_glue("DELETE FROM bin_index WHERE location_id = {location_to_edit()$id};"))
+      dbGetQuery(db, str_glue("DELETE FROM raw_metrics WHERE location_id = {location_to_edit()$id};"))
+      dbGetQuery(db, str_glue("DELETE FROM file_uploads WHERE location_id = {location_to_edit()$id} AND user_id = {user_to_edit()$id};"))
       update_locations(update_locations()+1)
       showNotification(str_glue("Alle Daten von Standort {location_to_edit()$id} wurden gelöscht."))
       showModal(location_details_modal())
@@ -288,7 +288,7 @@ SERVER_administration <- function(id, userID, users_db, open_admin_panel){
 
     observeEvent(input$confirm_location_delete, ignoreInit = T, {
       if(debug) message("confirm location delete")
-      dbGetQuery(content, str_glue("DELETE FROM sensor_locations WHERE id = {location_to_edit()$id}"))
+      dbGetQuery(db, str_glue("DELETE FROM sensor_locations WHERE id = {location_to_edit()$id}"))
       showNotification(str_glue("Standort {location_to_edit()$id} wurde gelöscht."))
       location_to_edit(NULL)
       update_locations(update_locations()+1)

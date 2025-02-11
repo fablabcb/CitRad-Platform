@@ -100,8 +100,8 @@ index_binary_file <- function(filename, id, location_id, read_data=F, debug=F, s
               iq_measurement = {c('false', 'true')[iq_measurement+1]},
               indexed = true
             WHERE id = '{id}'")
-  dbGetQuery(content, query)
-  #dbGetQuery(content, "SELECT * FROM file_uploads WHERE indexed=true;")
+  dbGetQuery(db, query)
+  #dbGetQuery(db, "SELECT * FROM file_uploads WHERE indexed=true;")
 
   #---- write bin index ----
   if(debug) message("write bin index to db")
@@ -113,8 +113,8 @@ index_binary_file <- function(filename, id, location_id, read_data=F, debug=F, s
     byte_index = timestamp_index
   )
 
-  dbWriteTable(content, "bin_index", index_table, append=T, row.names=F)
-  #read_data <- dbGetQuery(content, "SELECT * FROM bin_index WHERE file_id = 86 ORDER BY timestamp DESC limit 10;")
+  dbWriteTable(db, "bin_index", index_table, append=T, row.names=F)
+  #read_data <- dbGetQuery(db, "SELECT * FROM bin_index WHERE file_id = 86 ORDER BY timestamp DESC limit 10;")
   if(shiny_notification) removeNotification(filename)
   if(read_data) return(data)
 }
@@ -122,10 +122,10 @@ index_binary_file <- function(filename, id, location_id, read_data=F, debug=F, s
 #--------- test --------------------
 #
 # drv <- dbDriver("PostgreSQL")
-# content <- dbConnect(drv, dbname = "content", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
+# db <- dbConnect(drv, dbname = "db", host = "db", port = 5432, user = "data_platform", password = Sys.getenv("POSTGRES_data_platform_PW"))
 
 # query <- str_glue("SELECT id, filename from file_uploads WHERE indexed = false;") # AND filetype = '.bin'
-# files <- dbGetQuery(content, query)
+# files <- dbGetQuery(db, query)
 #
 # id = 42
 # filename <- files$filename[files$id == id]
@@ -133,8 +133,8 @@ index_binary_file <- function(filename, id, location_id, read_data=F, debug=F, s
 # index_binary_file(filename, debug=T)
 #
 #
-# indexed_data <- dbGetQuery(content, "SELECT * FROM bin_index WHERE file_id=54;") %>% as_tibble
+# indexed_data <- dbGetQuery(db, "SELECT * FROM bin_index WHERE file_id=54;") %>% as_tibble
 # indexed_data$file_id %>% unique
 
 #
-# dbGetQuery(content, "SELECT * FROM file_uploads WHERE indexed=true;")
+# dbGetQuery(db, "SELECT * FROM file_uploads WHERE indexed=true;")
