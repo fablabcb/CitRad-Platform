@@ -1,12 +1,12 @@
-SERVER_show_data <- function(id, content, location_id, show_data){
+SERVER_show_data <- function(id, db, location_id, show_data){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
     observeEvent(list(req(location_id()), show_data()), {
-      location_details <- dbGetQuery(content, str_glue("SELECT street_name FROM sensor_locations WHERE id = '{location_id()}';"))
+      location_details <- dbGetQuery(db, str_glue("SELECT street_name FROM sensor_locations WHERE id = '{location_id()}';"))
 
       query <- str_glue("SELECT date_trunc('day', timestamp) as day, count(id) FROM car_detections WHERE location_id = {location_id()} GROUP BY day;")
-      dates_with_data <- dbGetQuery(content, query) %>% tibble
+      dates_with_data <- dbGetQuery(db, query) %>% tibble
 
       showModal(modalDialog(size="xl", easyClose = T,
         title=str_glue("Daten anzeigen für {location_details$street_name}"),
@@ -49,12 +49,12 @@ SERVER_show_data <- function(id, content, location_id, show_data){
 
     car_detections <- reactive({
       query <- str_glue("SELECT * FROM car_detections WHERE location_id = {location_id()} AND date_trunc('day', timestamp) = '{input$date}' AND source = '{input$car_detections_source}';")
-      dbGetQuery(content, query) %>% tibble
+      dbGetQuery(db, query) %>% tibble
     })
 
     bin_file_timespans <- reactive({
       query <- str_glue("SELECT id, filename, start_time, end_time from file_uploads where filetype = 'spectrum' AND (date_trunc('day', start_time) = '{input$date}' OR date_trunc('day', end_time) = '{input$date}');")
-      dbGetQuery(content, query) %>% tibble
+      dbGetQuery(db, query) %>% tibble
     })
 
 
@@ -144,7 +144,7 @@ SERVER_show_data <- function(id, content, location_id, show_data){
       start_time <- min(selected_points()$timestamp) - seconds(input$seconds_before)
       end_time <- max(selected_points()$timestamp) + seconds(input$seconds_after)
 
-      byte_index <- dbGetQuery(content, str_glue("SELECT * from bin_index WHERE location_id = {location_id()} AND timestamp >= '{start_time}' AND timestamp <= '{end_time}' ORDER BY timestamp;")) %>% tibble
+      byte_index <- dbGetQuery(db, str_glue("SELECT * from bin_index WHERE location_id = {location_id()} AND timestamp >= '{start_time}' AND timestamp <= '{end_time}' ORDER BY timestamp;")) %>% tibble
 
       validate(
         need(nrow(byte_index)>0, "no spectrum data for the selected car detections")
@@ -154,7 +154,7 @@ SERVER_show_data <- function(id, content, location_id, show_data){
 
 
 
-      filename = dbGetQuery(content, str_glue("SELECT filename from file_uploads WHERE id = {file_ids[1]};"))$filename
+      filename = dbGetQuery(db, str_glue("SELECT filename from file_uploads WHERE id = {file_ids[1]};"))$filename
       index <- byte_index %>%
         filter(file_id == file_id) %>%
         arrange(timestamp) %>%
@@ -166,7 +166,7 @@ SERVER_show_data <- function(id, content, location_id, show_data){
 
 
     location_details <- reactive({
-      dbGetQuery(content, str_glue("SELECT id, street_name, user_speedlimit, osm_speedlimit, direction from sensor_locations WHERE id = {location_id()};"))
+      dbGetQuery(db, str_glue("SELECT id, street_name, user_speedlimit, osm_speedlimit, direction from sensor_locations WHERE id = {location_id()};"))
     })
 
 

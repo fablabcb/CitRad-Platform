@@ -2,18 +2,18 @@
 function(input, output, session) {
   cat(sprintf("New session %s\n", session$token))
 
-  userInfo <- SERVER_user_management("user_management", users_db, reactive(input$show_profile))
+  userInfo <- SERVER_user_management("user_management", db, reactive(input$show_profile))
   open_admin_panel <- reactive(input$open_admin_panel)
-  user_roles <- SERVER_administration("administration", reactive(userInfo()$id), users_db, open_admin_panel)
+  user_roles <- SERVER_administration("administration", reactive(userInfo()$id), db, open_admin_panel)
 
 
   output$map <- renderMaplibre({
 
     count_query =  "SELECT count(id) FROM sensor_locations;"
-    query="SELECT id, username, date_created, street_name, 'street_name.hsb', user_speedlimit, osm_speedlimit, direction, oneway, lanes, location_geom FROM sensor_locations;"
+    query="SELECT id, user_id, date_created, street_name, 'street_name.hsb', user_speedlimit, osm_speedlimit, direction, oneway, lanes, location_geom FROM sensor_locations;"
 
-    count <- suppressMessages(dbGetQuery(content, count_query))
-    locations <- suppressMessages(pgGetGeom(content, query=query, geom="location_geom"))
+    count <- suppressMessages(dbGetQuery(db, count_query))
+    locations <- suppressMessages(pgGetGeom(db, query=query, geom="location_geom"))
 
     locations <- locations %>% mutate(link = str_glue('<p class="fs-6"><span class="badge bg-secondary">{id}</span> <b>{street_name}</b></p>
                                                       <p><button onclick="Shiny.onInputChange(\'map_marker_id\', {id}); Shiny.onInputChange(\'upload_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten hochladen</button></p>
@@ -60,11 +60,11 @@ function(input, output, session) {
 
   hide_locations <- reactive(input$hide_locations)
 
-  output$add_location_UI <- SERVER_add_location("location_form", reactive(userInfo()$name), add_location, map_click, map_proxy)
-  output$show_locations_UI <- SERVER_show_locations("show_locations", reactive(userInfo()$name), content, show_locations, hide_locations, map_proxy)
-  SERVER_upload_data("upload_data", content, location_id = reactive(input$map_marker_id), show_upload=reactive(input$upload_data), reactive(userInfo()$name))
-  SERVER_show_data("show_data", content, location_id = reactive(input$show_data_for_id), show_data=reactive(input$show_data))
-  SERVER_my_uploads("my_uploads", content, reactive(userInfo()$name), reactive(input$show_uploads))
+  output$add_location_UI <- SERVER_add_location("location_form", reactive(userInfo()$id), add_location, map_click, map_proxy)
+  output$show_locations_UI <- SERVER_show_locations("show_locations", reactive(userInfo()$id), db, show_locations, hide_locations, map_proxy)
+  SERVER_upload_data("upload_data", db, location_id = reactive(input$map_marker_id), show_upload=reactive(input$upload_data), reactive(userInfo()$id))
+  SERVER_show_data("show_data", db, location_id = reactive(input$show_data_for_id), show_data=reactive(input$show_data))
+  SERVER_my_uploads("my_uploads", db, reactive(userInfo()$id), reactive(input$show_uploads))
 
 
 

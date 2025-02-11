@@ -1,4 +1,4 @@
-SERVER_my_uploads <- function(id, content, userID, show_uploads){
+SERVER_my_uploads <- function(id, db, userID, show_uploads){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
@@ -12,8 +12,8 @@ SERVER_my_uploads <- function(id, content, userID, show_uploads){
         )
       ))
       output$my_uploads_table <- renderReactable({
-        my_uploads <- dbGetQuery(content, str_glue("SELECT id, upload_date, temporary_speedlimit, location_id, filename FROM file_uploads WHERE username = '{userID()}';")) %>% as_tibble
-        my_locations <- dbGetQuery(content, str_glue("SELECT id, street_name, user_speedlimit, osm_speedlimit, oneway, lanes FROM sensor_locations;")) %>% as_tibble
+        my_uploads <- dbGetQuery(db, str_glue("SELECT id, upload_date, temporary_speedlimit, location_id, filename FROM file_uploads WHERE user_id = {userID()};")) %>% as_tibble
+        my_locations <- dbGetQuery(db, str_glue("SELECT id, street_name, user_speedlimit, osm_speedlimit, oneway, lanes FROM sensor_locations;")) %>% as_tibble
 
         my_uploads %>% left_join(my_locations, by = join_by("location_id"=="id")) %>%
           mutate(filename = basename(filename)) %>%

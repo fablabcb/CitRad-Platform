@@ -26,7 +26,7 @@ process_bin_to_db <- function(filename, file_id, location_id){
     arrange(timestamp)
 
 
-  dbWriteTable(content, "car_detections", data, append=T, row.names=F)
+  dbWriteTable(db, "car_detections", data, append=T, row.names=F)
 
 }
 

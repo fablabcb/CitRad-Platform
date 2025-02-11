@@ -55,7 +55,7 @@ GRANT ALL PRIVILEGES ON TABLE email_confirmations TO data_platform;
 CREATE TABLE "sensor_locations" (
     "id" SERIAL NOT NULL,
     PRIMARY KEY ("id"),
-    "username" character(200) NOT NULL,
+    "user_id" integer,
     "date_created" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "user_speedlimit" integer,
     "direction" integer,
@@ -76,7 +76,7 @@ CREATE TYPE filetype AS ENUM ('spectrum', 'metrics', 'car_detections', 'image');
 CREATE TABLE "file_uploads" (
     "id" SERIAL NOT NULL,
     PRIMARY KEY ("id"),
-    "username" character(200) NOT NULL,
+    "user_id" integer NOT NULL,
     "upload_date" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "notes" text,
     "temporary_speedlimit" integer,

@@ -196,8 +196,8 @@ SERVER_add_location <- function(id, userID, add_location_Button, map_click, map_
         }))
 
         query <- str_glue(.na="DEFAULT",
-          "INSERT INTO sensor_locations (username, street_name, \"street_name:hsb\", user_speedlimit, osm_speedlimit, oneway, lanes, direction, notes, location_geom, street_geom) VALUES (
-                  '{userID()}',
+          "INSERT INTO sensor_locations (user_id, street_name, \"street_name:hsb\", user_speedlimit, osm_speedlimit, oneway, lanes, direction, notes, location_geom, street_geom) VALUES (
+                  {userID()},
                   '{nearest_street()$name}',
                   '{nearest_street()$`name:hsb`}',
                   {input$speedLimit},
@@ -212,7 +212,7 @@ SERVER_add_location <- function(id, userID, add_location_Button, map_click, map_
         )
         cat(query)
 
-        id = dbGetQuery(content, query)$id
+        id = dbGetQuery(db, query)$id
 
         showNotification(str_glue("Standort wurde gespeichert mit id {id}"))
         map_observer$suspend()
