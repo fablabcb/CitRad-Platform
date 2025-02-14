@@ -15,6 +15,27 @@ library(ggplot2)
 
 
 read_car_detections <- function(filename, id, location_id, debug=F){
+  header <- readLines(filename, n = 1) %>%
+    str_remove("^// ") %>%
+    str_split(", ") %>%
+    { .[[1]] }
+
+  keys <- sapply(header, function(x) strsplit(x, "=")[[1]][1])
+  values <- sapply(header, function(x) strsplit(x, "=")[[1]][2])
+
+  metadata <- as.vector(as.list(setNames(values, keys)))
+  if(is.null(metadata$teensyId)){
+    device_id = NA
+  }else{
+    # complicated way to read a hex string in big endian:
+    pairs <- metadata$teensyId %>% str_remove_all("-") %>%
+      str_split("") %>% {.[[1]]}
+    device_id <- paste(rev(pairs[seq(1, length(pairs), 2)]), rev(pairs[seq(2, length(pairs), 2)]), sep = "") %>%
+      paste(collapse = "") %>%
+      strtoi(16L)
+  }
+
+
   start_time <- filename %>%
     str_extract("(?<=cars_).*") %>%
     as.POSIXct(format="%Y-%m-%d_%H-%M-%S")
@@ -24,6 +45,17 @@ read_car_detections <- function(filename, id, location_id, debug=F){
     mutate(file_id=id) %>%
     mutate(source="sensor unit") %>%
     mutate(location_id=location_id)
+
+  query <- str_glue("UPDATE file_uploads
+              SET
+                start_time = {postgres_time(cars$timestamp[1])},
+                end_time = {postgres_time(last(cars$timestamp))},
+                file_version = {metadata$fileFormat},
+                processed = true,
+                device_id = '{device_id}'
+              WHERE id = '{id}'")
+  dbGetQuery(db, query)
+
   if(debug) message("writing csv data to db")
   dbWriteTable(db, "car_detections", cars, append=T, row.names=F)
 }
