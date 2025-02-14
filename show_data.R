@@ -160,7 +160,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
         arrange(timestamp) %>%
         pull(byte_index) %>%
         unique()
-      data <- read_from_byte_index(filename, index, debug=F)
+      data <- read_binary_file(filename, index, debug=F, read_data = T)
       return(data)
     })
 
@@ -174,7 +174,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
       data <- data()
       timestamps <- data$timestamps
       milliseconds <- data$milliseconds
-      metadata <- data$metadata
+      metadata <- list(file_version=data$file_version, start_time=data$start_time, num_fft_bins=data$num_fft_bins, iq_measurement=data$iq_measurement, sample_rate=data$sample_rate, n=data$n)
       data <- data$data
 
 

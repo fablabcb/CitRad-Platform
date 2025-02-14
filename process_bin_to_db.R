@@ -37,11 +37,12 @@ process_bin_to_db <- function(filename, file_id, location_id){
 process_bin <- function(filename, max_trigger_speed = 50, pedestrian_speed = 10, noise_dynamic_smoothing_factor = 100, signal_threshold = 20, car_trigger_signal_smoothing_factor = 21, diff_threshold = 0.2, timeshift = 0, mirror_subtract=F, version=1, width_per_minute=300, shiny_notification=F){
 
 
-  data <- read_from_byte_index(filename, read_data = T, debug=T)
+  data <- read_binary_file(filename, read_data = T, debug=T)
 
   timestamps <- data$timestamps
   milliseconds <- data$milliseconds
-  metadata <- data$metadata
+  metadata <- list(file_version=data$file_version, start_time=data$start_time, num_fft_bins=data$num_fft_bins, iq_measurement=data$iq_measurement, sample_rate=data$sample_rate, n=data$n)
+
   data <- data$data
   sample_rate = metadata$file_version
   start_time = metadata$start_time
