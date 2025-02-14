@@ -77,6 +77,7 @@ CREATE TABLE "file_uploads" (
     "id" SERIAL NOT NULL,
     PRIMARY KEY ("id"),
     "user_id" integer NOT NULL,
+    "device_id" character(20),
     "upload_date" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "notes" text,
     "temporary_speedlimit" integer,

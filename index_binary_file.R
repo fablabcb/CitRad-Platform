@@ -34,12 +34,15 @@ read_binary_file <- function(filename, byte_index=NA, read_data=F, shiny_notific
   file_version <- readBin(con, "integer", n=1, size=2, signed = F)
   if(debug) message("file version: ", file_version)
   # read file header:
+  if(file_version == 4) size_of_header = readBin(con, "integer", n=1, size=2, signed=F)
   start_time <- as.POSIXct(readBin(con, "integer", n=1, size=4), tz="UTC", origin="1970-01-01")
   num_fft_bins <- readBin(con, "integer", n=1, size=2, signed = F)
-  if(file_version == 2) D_SIZE <- readBin(con, "integer", n=1, size=1, signed = F)
+  if(file_version %in% c(2,3,4)) D_SIZE <- readBin(con, "integer", n=1, size=1, signed = F)
   iq_measurement <- readBin(con, "logical", n=1, size=1)
   sample_rate <- readBin(con, "integer", n=1, size=2, signed = F)
-  if(file_version == 3) device_id <- readBin(con, "integer", n=1, size=4, signed=F)
+  device_id <- if(file_version %in% c(3,4)) readBin(con, "integer", n=1, size=4) else NA
+  time_offset <- if(file_version %in% c(4)) readBin(con, "integer", n=1, size=4) else NA
+
 
   if(file_version == 1){
 
@@ -71,7 +74,7 @@ read_binary_file <- function(filename, byte_index=NA, read_data=F, shiny_notific
     }
   }
 
-  if(file_version == 2 | file_version == 3){
+  if(file_version %in% c(2,3,4)){
     # number of records:
     n <- ((size-12)/(num_fft_bins+4+8)) # 11 file header bytes
     n
@@ -88,7 +91,12 @@ read_binary_file <- function(filename, byte_index=NA, read_data=F, shiny_notific
     if(any(integrity_field != -1)) stop("integrity field validation failed")
 
     millis_timestamp <- sapply(timestamp_index, read_timestamp, con=con)
-    timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(millis_timestamp[1])
+    if(!is.na(time_offset)){
+      timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(time_offset)
+    }else{
+      timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(millis_timestamp[1])
+    }
+
 
     if(read_data){
       if(debug) message("reading data")
@@ -99,10 +107,12 @@ read_binary_file <- function(filename, byte_index=NA, read_data=F, shiny_notific
 
   }
   close(con)
-  out <- list(data=data, timestamp_index=timestamp_index, timestamps=timestamps, milliseconds=millis_timestamp, file_version=file_version, start_time=start_time, num_fft_bins=num_fft_bins, iq_measurement=iq_measurement, sample_rate=sample_rate, n=n)
+  out <- list(device_id=device_id, data=data, timestamp_index=timestamp_index, timestamps=timestamps, milliseconds=millis_timestamp, file_version=file_version, start_time=start_time, num_fft_bins=num_fft_bins, iq_measurement=iq_measurement, sample_rate=sample_rate, n=n)
+
   if(read_data){
     out$data = data
   }
+
   if(shiny_notification) removeNotification(filename)
 
   return(out)
@@ -127,7 +137,8 @@ index_binary_file <- function(filename, id, location_id, read_data=F, debug=F, s
                 end_time = {postgres_time(last(timestamps))},
                 file_version = {file_version},
                 iq_measurement = {c('false', 'true')[iq_measurement+1]},
-                indexed = true
+                indexed = true,
+                device_id = '{device_id}'
               WHERE id = '{id}'")
     dbGetQuery(db, query)
     #dbGetQuery(db, "SELECT * FROM file_uploads WHERE indexed=true;")
