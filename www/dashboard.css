@@ -200,7 +200,8 @@
   text-align: center;
   box-shadow: 0 1px 15px rgba(0, 0, 0, 0.25);
 }
-.maplibregl-popup-content p:nth-last-child(2) {
+
+.maplibregl-popup-content p:last-child {
 	margin-bottom: 0px;
 }
 

@@ -79,3 +79,17 @@ reactable_checkmark_cell <- function(value) {
     span("×", class="cross")
   }
 }
+
+location_buttons <- '
+      <div class="location_buttons">
+        <p class="fs-6">
+          <span class="badge bg-secondary">{id}</span>
+          <b>{street_name}</b>
+        </p>
+        <p>
+          <button onclick="Shiny.onInputChange(\'show_data_for_id\', {id}); Shiny.onInputChange(\'show_data\', Math.random());" class="btn btn-default btn-sm btn-primary" title="Daten anzeigen"><i class="fa-solid fa-chart-line"></i></button>
+          <button onclick="Shiny.onInputChange(\'map_marker_id\', {id}); Shiny.onInputChange(\'upload_data\', Math.random());" class="btn btn-default btn-sm btn-primary" title="Daten hochladen"><i class="fa-solid fa-upload"></i></button>
+          <button onclick="Shiny.onInputChange(\'show_location_details_for_id\', {id}); Shiny.onInputChange(\'show_location_details\', Math.random());" class="btn btn-default btn-sm btn-primary" title="Standort Details"><i class="fa-solid fa-circle-info"></i></button>
+        </p>
+      </div>
+    '
