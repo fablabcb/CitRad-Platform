@@ -49,7 +49,7 @@ SERVER_location_details <- function(id, db, location_id, show_location_details_b
         p("angelegt am: ", floor_date(location$date_created, "minute")),
         p("Einbahnstraße: ", c("nein", "ja")[location$oneway +1]),
         p("Fahrspuren: ", location$lanes),
-        p("Fahrtrichtung: ", azimuth_to_direction(location$direction), icon("arrow-up", style = str_glue("transform: rotate({location$direction}deg);")), str_glue(" ({location$direction}° von Nord)")),
+        p("Messrichtung: ", azimuth_to_direction(location$direction), icon("arrow-up", style = str_glue("transform: rotate({location$direction}deg);")), str_glue(" ({location$direction}° von Nord)")),
         p("OpenStreetMap Geschwindigkeit: ", location$osm_speedlimit, "km/h"),
         textInput(ns("user_speedlimit"), "Geschwindigkeitsbegrenzung", value = location$user_speedlimit),
         p("Notizen: ", location$notes),
