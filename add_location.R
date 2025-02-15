@@ -24,7 +24,7 @@ SERVER_add_location <- function(id, userID, add_location_Button, map_click, map_
         textOutput(ns("selected_street"), inline=T),
         textOutput(ns("street_specifics"), inline=T)),
         uiOutput(ns("direction")),
-        checkboxInput(ns("reverse"), "Fahrtrichtung umkehren", value=FALSE),
+        checkboxInput(ns("reverse"), "Messrichtung umkehren", value=FALSE),
         actionButton(ns("save_location"), "Standort speichern", class="btn-primary btn-block mt-10 mb-10"),
         actionButton(ns("cancel_location_save"), "Abbrechen")
       ))
@@ -41,12 +41,7 @@ SERVER_add_location <- function(id, userID, add_location_Button, map_click, map_
         mutate(icon="music")
 
       if(input$reverse){
-        if(isTruthy(nearest_street$oneway)){
-          showNotification("Die Fahrtrichtung der Einbahnstraße kann nicht umgekehrt werden.", type = "error")
-          updateCheckboxInput(session, "reverse", value = F)
-        }else{
-          nearest_street <- nearest_street %>% st_reverse()
-        }
+        nearest_street <- nearest_street %>% st_reverse()
       }
 
       nearest_street(nearest_street) # save in reactiveVal
@@ -79,7 +74,8 @@ SERVER_add_location <- function(id, userID, add_location_Button, map_click, map_
           source = snap_point,
           #text_field = get_column("name"),
           text_justify = "left",
-          icon_image = "marking-arrow",
+          icon_image = "icon-citrad_arrow",
+          icon_offset = c(0,-9),
           icon_rotate = street_azimuth,
           icon_pitch_alignment = "map",
           icon_rotation_alignment = "map",
