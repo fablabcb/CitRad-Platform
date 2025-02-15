@@ -42,6 +42,7 @@ read_binary_file <- function(filename, byte_index=NA, read_data=F, shiny_notific
   sample_rate <- readBin(con, "integer", n=1, size=2, signed = F)
   device_id <- if(file_version %in% c(3,4)) readBin(con, "integer", n=1, size=4) else NA
   time_offset <- if(file_version %in% c(4)) readBin(con, "integer", n=1, size=4) else NA
+  start_millis <- readBin(con, "integer", n=1, size=4)
 
 
   if(file_version == 1){
@@ -53,7 +54,7 @@ read_binary_file <- function(filename, byte_index=NA, read_data=F, shiny_notific
     # read records:
     if(is.na(byte_index[1])){
       if(debug) message("reading full file")
-      start_data_block <- seek(con)
+      start_data_block <- seek(con)-4
       timestamp_index <- start_data_block + (0:(n-1))*(1024+4)
     }else{
       if(debug) message("reading file index")
@@ -63,7 +64,7 @@ read_binary_file <- function(filename, byte_index=NA, read_data=F, shiny_notific
 
     if(debug) message("reading timestamps")
     millis_timestamp <- sapply(timestamp_index, read_timestamp, con=con)
-    timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(millis_timestamp[1])
+    timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(start_millis)
 
 
     if(read_data){
@@ -80,7 +81,7 @@ read_binary_file <- function(filename, byte_index=NA, read_data=F, shiny_notific
     n
 
     if(is.na(byte_index[1])){
-      start_data_block <- seek(con)
+      start_data_block <- seek(con)-4
       timestamp_index <- start_data_block + (0:(n-1))*(1024+4+4+4)
     }else{
       timestamp_index <- byte_index
@@ -89,12 +90,11 @@ read_binary_file <- function(filename, byte_index=NA, read_data=F, shiny_notific
     if(debug) message("reading timestamps")
     integrity_field <- sapply(timestamp_index+8+num_fft_bins*D_SIZE, read_integrity_field, con=con)
     if(any(integrity_field != -1)) stop("integrity field validation failed")
-
     millis_timestamp <- sapply(timestamp_index, read_timestamp, con=con)
     if(!is.na(time_offset)){
       timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(time_offset)
     }else{
-      timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(millis_timestamp[1])
+      timestamps = start_time + milliseconds(millis_timestamp) - milliseconds(start_millis)
     }
 
 
