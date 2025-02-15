@@ -198,7 +198,7 @@ SERVER_administration <- function(id, userID, db, open_admin_panel){
                   p("angelegt am: ", floor_date(location$date_created, "minute")),
                   p("Einbahnstraße: ", c("nein", "ja")[location$oneway +1]),
                   p("Fahrspuren: ", location$lanes),
-                  p("Fahrtichtung: ", azimuth_to_direction(location$direction), icon("arrow-up", style = str_glue("transform: rotate({location$direction}deg);")), str_glue(" ({location$direction}° von Nord)")),
+                  p("Fahrtrichtung: ", azimuth_to_direction(location$direction), icon("arrow-up", style = str_glue("transform: rotate({location$direction}deg);")), str_glue(" ({location$direction}° von Nord)")),
                   checkboxInput(ns("reverse_direction"), "Fahrtrichtung umkehren", value = F),
                   p("OpenStreetMap Geschwindigkeit: ", location$osm_speedlimit, "km/h"),
                   textInput(ns("user_speedlimit"), "Geschwindigkeitsbegrenzung", value = location$user_speedlimit),
@@ -264,7 +264,8 @@ SERVER_administration <- function(id, userID, db, open_admin_panel){
       dbGetQuery(db, str_glue("DELETE FROM car_detections WHERE location_id = {location_to_edit()$id};"))
       dbGetQuery(db, str_glue("DELETE FROM bin_index WHERE location_id = {location_to_edit()$id};"))
       dbGetQuery(db, str_glue("DELETE FROM raw_metrics WHERE location_id = {location_to_edit()$id};"))
-      dbGetQuery(db, str_glue("DELETE FROM file_uploads WHERE location_id = {location_to_edit()$id} AND user_id = {user_to_edit()$id};"))
+      dbGetQuery(db, str_glue("DELETE FROM file_uploads WHERE location_id = {location_to_edit()$id};"))
+      # AND user_id = {user_to_edit()$id}
       update_locations(update_locations()+1)
       showNotification(str_glue("Alle Daten von Standort {location_to_edit()$id} wurden gelöscht."))
       showModal(location_details_modal())

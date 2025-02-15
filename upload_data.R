@@ -42,11 +42,11 @@ SERVER_upload_data <- function(id, db, location_id, show_upload, userID){
         file = files[i,]
         file.copy(file$datapath, file.path(data_folder, file$name), copy.date = T)
         filename <- file.path(data_folder, file$name)
-        filetype <- str_extract(filename, '[^\\.]+$')
-        if(filetype %in% c("bin", "BIN")) filetype = "spectrum"
-        if(filetype == "csv" & str_detect(filename, "metrics")) filetype = "metrics"
-        if(filetype == "csv" & str_detect(filename, "cars")) filetype = "car_detections"
-        if(filetype %in% c("png", "jpg", "jpeg")) filetype = "image"
+        filetype_extension <- str_extract(filename, '[^\\.]+$')
+        if(filetype_extension %in% c("bin", "BIN")) filetype = "spectrum"
+        if(filetype_extension == "csv" & str_detect(filename, "metrics")) filetype = "metrics"
+        if(filetype_extension == "csv" & str_detect(filename, "cars")) filetype = "car_detections"
+        if(filetype_extension %in% c("png", "jpg", "jpeg")) filetype = "image"
 
         hash <- rlang::hash_file(file$datapath)
 
@@ -63,6 +63,12 @@ SERVER_upload_data <- function(id, db, location_id, show_upload, userID){
                       {location_id()},
                       '{hash}'
                       ) RETURNING id;")
+
+          if(filetype=="image"){
+
+            file.copy(file$datapath, file.path("www/location_images", paste0(hash,".",filetype_extension) ), copy.date = T)
+
+          }
 
           id = dbGetQuery(db, query)$id
           if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =F, shiny_notification=T)

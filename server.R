@@ -17,7 +17,8 @@ function(input, output, session) {
 
     locations <- locations %>% mutate(link = str_glue('<p class="fs-6"><span class="badge bg-secondary">{id}</span> <b>{street_name}</b></p>
                                                       <p><button onclick="Shiny.onInputChange(\'map_marker_id\', {id}); Shiny.onInputChange(\'upload_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten hochladen</button></p>
-                                                      <p><button onclick="Shiny.onInputChange(\'show_data_for_id\', {id}); Shiny.onInputChange(\'show_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten anzeigen</button></p>'))
+                                                      <p><button onclick="Shiny.onInputChange(\'show_data_for_id\', {id}); Shiny.onInputChange(\'show_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten anzeigen</button></p>
+                                                      <p><button onclick="Shiny.onInputChange(\'show_location_details_for_id\', {id}); Shiny.onInputChange(\'show_location_details\', Math.random());" class="btn btn-default btn-sm btn-primary">Standort Details</button></p>'))
 
 
     maplibre("./neutrino.de.json",
@@ -36,7 +37,7 @@ function(input, output, session) {
       #popup = c("name", "maxspeed"),
       #tooltip = "name", hover_options = list(line_width=4)
       ) %>%
-      add_legend(position="bottom-left", legend_title = "max speed", type="categorical",
+      add_legend(position="bottom-left", legend_title = "max<br/>speed", type="categorical",
                  values = c("30", "50", "60", "70", "100"),
                  colors = c("#1f78b4", "#33a02c", "#ff7f00","#e31a1c", "yellow")) %>%
       add_layers_control(layers=list("streets", "Luftbild"), collapsible = TRUE) %>%
@@ -61,9 +62,15 @@ function(input, output, session) {
   hide_locations <- reactive(input$hide_locations)
 
   output$add_location_UI <- SERVER_add_location("location_form", reactive(userInfo()$id), add_location, map_click, map_proxy)
+
   output$show_locations_UI <- SERVER_show_locations("show_locations", reactive(userInfo()$id), db, show_locations, hide_locations, map_proxy)
+
   SERVER_upload_data("upload_data", db, location_id = reactive(input$map_marker_id), show_upload=reactive(input$upload_data), reactive(userInfo()$id))
+
   SERVER_show_data("show_data", db, location_id = reactive(input$show_data_for_id), show_data=reactive(input$show_data))
+
+  SERVER_location_details("location_details", db, location_id = reactive(input$show_location_details_for_id), reactive(input$show_location_details))
+
   SERVER_my_uploads("my_uploads", db, reactive(userInfo()$id), reactive(input$show_uploads))
 
 
