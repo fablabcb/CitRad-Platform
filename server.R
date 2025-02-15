@@ -16,9 +16,9 @@ function(input, output, session) {
     locations <- suppressMessages(pgGetGeom(db, query=query, geom="location_geom"))
 
     locations <- locations %>% mutate(link = str_glue('<p class="fs-6"><span class="badge bg-secondary">{id}</span> <b>{street_name}</b></p>
-                                                      <p><button onclick="Shiny.onInputChange(\'map_marker_id\', {id}); Shiny.onInputChange(\'upload_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten hochladen</button></p>
-                                                      <p><button onclick="Shiny.onInputChange(\'show_data_for_id\', {id}); Shiny.onInputChange(\'show_data\', Math.random());" class="btn btn-default btn-sm btn-primary">Daten anzeigen</button></p>
-                                                      <p><button onclick="Shiny.onInputChange(\'show_location_details_for_id\', {id}); Shiny.onInputChange(\'show_location_details\', Math.random());" class="btn btn-default btn-sm btn-primary">Standort Details</button></p>'))
+    <p><button onclick="Shiny.onInputChange(\'show_data_for_id\', {id}); Shiny.onInputChange(\'show_data\', Math.random());" class="btn btn-default w-100 btn-sm btn-primary">Daten anzeigen</button></p>
+                                                      <p><button onclick="Shiny.onInputChange(\'map_marker_id\', {id}); Shiny.onInputChange(\'upload_data\', Math.random());" class="btn btn-default w-100 btn-sm btn-primary">Daten hochladen</button></p>
+                                                      <p><button onclick="Shiny.onInputChange(\'show_location_details_for_id\', {id}); Shiny.onInputChange(\'show_location_details\', Math.random());" class="btn btn-default w-100 btn-sm btn-primary">Standort Details</button></p>'))
 
 
     maplibre("./neutrino.de.json",
