@@ -36,13 +36,25 @@ SERVER_show_locations <- function(id, userID, db, show_locations_button, hide_lo
 
         map_proxy() %>%
           clear_markers() %>%
-          clear_layer("sensor_locations") %>%
-          add_circle_layer(id="sensor_locations", source=st_as_sf(locations), circle_radius = 5, circle_color = "#0c4b4c", max_zoom = 16, popup = "link") %>%
           clear_layer("sensors") %>%
-          add_symbol_layer(id="sensors", icon_offset = c(0,-9),
-                           icon_image = "icon-citrad_arrow", source=st_as_sf(locations), symbol_placement = "point",
-                           min_zoom = 16,
-                           icon_size = 2,
+          add_symbol_layer(id="sensors",
+                           icon_offset = c(0,0),
+                           icon_image =
+                             step_expr(
+                               property = "zoom",
+                               base = "icon-citrad_point",
+                               stops = c("icon-citrad_arrow"),
+                               values = c(16)
+                             ),
+                           source=st_as_sf(locations),
+                           symbol_placement = "point",
+                           #min_zoom = 16,
+                           icon_size = step_expr(
+                             property="zoom",
+                             base = 1,
+                             stops = 4,
+                             values = 16
+                           ),
                            icon_color = "#0c4b4c",
                            icon_rotate = c("get", "direction"),
                            icon_allow_overlap = T,

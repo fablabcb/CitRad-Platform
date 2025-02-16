@@ -52,3 +52,4 @@ Berücksichtigen:
 
 Mit der [applytransforms Erweiterung](https://github.com/Klowner/inkscape-applytransforms) für Inkscape kann man alle "transform()" Attribute in feste Koordinaten umwandeln. Wichtig: vorher alle Gruppierungen aufheben.
 
+Anschließend in `scripts/config-sprites.ts` die neuen Icons eintragen.
