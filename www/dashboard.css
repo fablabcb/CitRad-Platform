@@ -322,3 +322,7 @@
   margin-top: 5px;
   margin-bottom: 5px;
 }
+
+.shiny-file-input-progress .progress-bar {
+	background-color: #0c4b4c;
+}
