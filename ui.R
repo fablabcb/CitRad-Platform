@@ -42,7 +42,30 @@ page_fillable(fillable_mobile = T, title = "CitRad - Datenplattform", collapsibl
               tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css"),
 	                    tags$meta(width="device-width", "initial-scale"="1.0", "maximum-scale"="1.0", "user-scalable"="no"),
               tags$meta(name="mobile-web-app-capable", content="yes"),
-              tags$meta(name="display", content="standalone")
+              tags$meta(name="display", content="standalone"),
+              HTML(
+  '<link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
+  <link rel="manifest" href="favicons/site.webmanifest">
+  <meta name="description" content="Verkehrsdaten messen">
+  <meta property="og:url" content="https://data.citrad.de/">
+  <meta property="og:site_name" content="Citizen Traffic Radar">
+  <meta property="og:title" content="CitRad - Datenplattform">
+  <meta property="og:description" content="CitRad - Citizen Traffic Radar: Datenplattform zum Sammeln und Visualisieren von Verkehrsdaten">
+  <meta property="og:locale" content="de">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://citrad.de/featured-background.JPG">
+  <meta itemprop="name" content="CitRad">
+  <meta itemprop="description" content="CitRad - Citizen Traffic Radar: Datenplattform zum Sammeln und Visualisieren von Verkehrsdaten">
+  <meta itemprop="dateModified" content="2024-12-24T12:39:01+01:00">
+  <meta itemprop="wordCount" content="117">
+  <meta itemprop="image" content="https://citrad.de/featured-background.JPG">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://citrad.de/featured-background.JPG">
+  <meta name="twitter:title" content="CitRad">
+  <meta name="twitter:description" content="CitRad - Citizen Traffic Radar: Datenplattform zum Sammeln und Visualisieren von Verkehrsdaten">'
+              )
 
             )
 )
