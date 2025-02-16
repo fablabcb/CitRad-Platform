@@ -51,7 +51,7 @@ SERVER_upload_data <- function(id, db, location_id, show_upload, userID){
         hash <- rlang::hash_file(file$datapath)
 
         if(dbGetQuery(db, str_glue("Select count(*) from file_uploads where hash = '{hash}'"))$count > 0){
-          showNotification(str_glue("Datei {file$name} ist schon in der Datenbank vorhanden und wurde nicht noch einmal hochgeladen."))
+          showNotification(str_glue("Datei {file$name} ist schon in der Datenbank vorhanden und wurde nicht noch einmal hochgeladen."), duration = NULL)
         }else{
           query <- str_glue(.na="DEFAULT",
                             "INSERT INTO file_uploads (user_id, temporary_speedlimit, notes, filename, filetype, location_id, hash) VALUES (

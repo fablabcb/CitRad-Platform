@@ -43,6 +43,7 @@ SERVER_show_locations <- function(id, userID, db, show_locations_button, hide_lo
                            icon_image = "icon-citrad_arrow", source=st_as_sf(locations), symbol_placement = "point",
                            min_zoom = 16,
                            icon_size = 2,
+                           icon_color = "#0c4b4c",
                            icon_rotate = c("get", "direction"),
                            icon_allow_overlap = T,
                            icon_rotation_alignment = "map",
