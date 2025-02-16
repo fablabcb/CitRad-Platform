@@ -1,4 +1,4 @@
-page_fillable(fillable_mobile = T, window_title = "CitRad", collapsible = F,
+page_fillable(fillable_mobile = T, title = "CitRad - Datenplattform", collapsible = F,
             useShinyjs(),
             div(class="citrad-content",
               div(class="citrad-navbar",
