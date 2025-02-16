@@ -37,7 +37,7 @@ SERVER_show_locations <- function(id, userID, db, show_locations_button, hide_lo
         map_proxy() %>%
           clear_markers() %>%
           clear_layer("sensor_locations") %>%
-          add_circle_layer(id="sensor_locations", source=st_as_sf(locations), circle_radius = 5, max_zoom = 16, popup = "link") %>%
+          add_circle_layer(id="sensor_locations", source=st_as_sf(locations), circle_radius = 5, circle_color = "#0c4b4c", max_zoom = 16, popup = "link") %>%
           clear_layer("sensors") %>%
           add_symbol_layer(id="sensors", icon_offset = c(0,-9),
                            icon_image = "icon-citrad_arrow", source=st_as_sf(locations), symbol_placement = "point",
