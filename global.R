@@ -34,6 +34,8 @@ source("my_uploads.R")
 source("user_management.R")
 source("administration.R")
 source("location_details.R")
+source("edit_data.R")
+source("edit_location.R")
 
 source("index_binary_file.R")
 source("read_csv.R")

@@ -46,7 +46,7 @@ DROP table email_confirmations;
 CREATE TABLE email_confirmations (
   "code" VARCHAR(255) PRIMARY KEY NOT NULL,
   "user_id" integer NOT NULL,
-  CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+  CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
 );
 GRANT ALL PRIVILEGES ON TABLE email_confirmations TO data_platform;
 
@@ -66,7 +66,8 @@ CREATE TABLE "sensor_locations" (
     "oneway" boolean,
     "lanes" integer,
     "location_geom" geometry(Point,4326),
-    "street_geom" geometry(LineString,4326)
+    "street_geom" geometry(LineString,4326),
+    CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
 );
 GRANT ALL PRIVILEGES ON TABLE sensor_locations TO data_platform;
 GRANT ALL PRIVILEGES ON SEQUENCE sensor_locations_id_seq TO data_platform;
@@ -93,7 +94,8 @@ CREATE TABLE "file_uploads" (
     "indexed" boolean DEFAULT false,
     "processed" boolean DEFAULT false,
     "hash" character(32)
-    CONSTRAINT "fk_location_id" FOREIGN KEY ("location_id") REFERENCES "sensor_locations" ("id")
+    CONSTRAINT "fk_location_id" FOREIGN KEY ("location_id") REFERENCES "sensor_locations" ("id")  ON DELETE CASCADE,
+    CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "users" ("id")  ON DELETE CASCADE
 );
 GRANT ALL PRIVILEGES ON TABLE file_uploads TO data_platform;
 GRANT ALL PRIVILEGES ON SEQUENCE file_uploads_id_seq TO data_platform;
@@ -105,9 +107,9 @@ CREATE TABLE "bin_index" (
     "timestamp" timestamp NOT NULL,
     "milliseconds" integer,
     "byte_index" integer,
-    CONSTRAINT "fk_location_id" FOREIGN KEY ("location_id") REFERENCES "sensor_locations" ("id"),
     CONSTRAINT "pk_bin_data" PRIMARY KEY ("file_id", "timestamp"),
-    CONSTRAINT "fk_file_id" FOREIGN KEY ("file_id") REFERENCES "file_uploads" ("id")
+    CONSTRAINT "fk_location_id" FOREIGN KEY ("location_id") REFERENCES "sensor_locations" ("id") ON DELETE CASCADE,
+    CONSTRAINT "fk_file_id" FOREIGN KEY ("file_id") REFERENCES "file_uploads" ("id") ON DELETE CASCADE
 );
 GRANT ALL PRIVILEGES ON TABLE bin_index TO data_platform;
 
@@ -129,9 +131,9 @@ CREATE TABLE "raw_metrics" (
     "dynamic_noise_level_filter_size" integer,
     "car_trigger_signal" real,
     "car_trigger_signal_filter_size" integer,
-    CONSTRAINT "fk_location_id" FOREIGN KEY ("location_id") REFERENCES "sensor_locations" ("id"),
     CONSTRAINT "pk_raw_metrics" PRIMARY KEY ("file_id", "timestamp"),
-    CONSTRAINT "fk_file_id" FOREIGN KEY ("file_id") REFERENCES "file_uploads" ("id")
+    CONSTRAINT "fk_location_id" FOREIGN KEY ("location_id") REFERENCES "sensor_locations" ("id") ON DELETE CASCADE,
+    CONSTRAINT "fk_file_id" FOREIGN KEY ("file_id") REFERENCES "file_uploads" ("id") ON DELETE CASCADE
 );
 GRANT ALL PRIVILEGES ON TABLE raw_metrics TO data_platform;
 
@@ -148,9 +150,9 @@ CREATE TABLE "car_detections" (
   "medianSpeed" real,
   "source" car_detection_source DEFAULT 'sensor unit',
   "file_id" integer NOT NULL,
-  CONSTRAINT "fk_location_id" FOREIGN KEY ("location_id") REFERENCES "sensor_locations" ("id"),
   CONSTRAINT "pk_car_detections" PRIMARY KEY ("file_id", "timestamp"),
-  CONSTRAINT "fk_file_id" FOREIGN KEY ("file_id") REFERENCES "file_uploads" ("id")
+  CONSTRAINT "fk_location_id" FOREIGN KEY ("location_id") REFERENCES "sensor_locations" ("id") ON DELETE CASCADE,
+  CONSTRAINT "fk_file_id" FOREIGN KEY ("file_id") REFERENCES "file_uploads" ("id") ON DELETE CASCADE
 );
 GRANT ALL PRIVILEGES ON TABLE car_detections TO data_platform;
 GRANT ALL PRIVILEGES ON SEQUENCE car_detections_id_seq TO data_platform;

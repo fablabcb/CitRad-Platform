@@ -153,7 +153,7 @@ SERVER_administration <- function(id, userID, db, open_admin_panel){
       if(debug) message("query user locations")
       req(user_roles()$user_admin)
       update_locations()
-      #browser()
+
       location_files <- dbGetQuery(db, str_glue("SELECT location_id, count(*) FROM file_uploads GROUP BY location_id;"))
       #query <- str_glue("SELECT id, street_name, date_created, user_speedlimit, notes, direction, \"street_name:hsb\", osm_speedlimit, oneway, lanes, username from sensor_locations;")
       query <- str_glue("SELECT id, street_name, date_created, user_speedlimit, notes, direction, \"street_name:hsb\", osm_speedlimit, oneway, lanes from sensor_locations WHERE user_id = {user_to_edit()$id};")

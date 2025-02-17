@@ -1,3 +1,8 @@
+:root {
+  --cgreen: #0c4b4c;
+  --cyellow: #ffcc00;
+}
+
 .logo svg{
     height: 50px;
 }
@@ -21,7 +26,7 @@
 }
 
 .navbar.navbar-static-top{
-  background-color: #ffcc00 !important;
+  background-color: var(--cgreen) !important;
 }
 
 .bslib-page-fill {
@@ -128,6 +133,22 @@
 
 .btn-default{
 	padding: 10px 15px;
+}
+
+.modal-footer .btn-outline-default,
+.modal-footer .btn-default:not(.btn-primary, .btn-secondary, .btn-info, .btn-success, .btn-danger, .btn-warning, .btn-light, .btn-dark, .btn-link, [class*="btn-outline-"]){
+  --bs-btn-hover-bg: var(--cgreen);
+	--bs-btn-bg: var(--cyellow);
+	--bs-btn-color: var(--cgreen);
+	--bs-btn-border-color: var(--cgreen);
+}
+
+.btn-outline-default,
+.btn-default:not(.btn-primary, .btn-secondary, .btn-info, .btn-success, .btn-danger, .btn-warning, .btn-light, .btn-dark, .btn-link, [class*="btn-outline-"]){
+
+  --bs-btn-hover-bg: var(--cgreen);
+	--bs-btn-color: var(--cgreen);
+	--bs-btn-border-color: var(--cgreen);
 }
 
 .btn-primary {
@@ -315,14 +336,41 @@
 }
 
 
-.Standort_detail{
+
+.shiny-file-input-progress .progress-bar {
+	background-color: #0c4b4c;
+}
+
+.modal-title{
+  color: var(--cgreen);
+  font-weight: 700;
+}
+
+.location_details .details{
+  margin-bottom: 14px;
+}
+
+.location_details .label{
+  color: var(--cyellow);
+  font-weight: 700;
+}
+.location_details .value{
+  color: var(--cgreen);
+  font-weight: 700;
+}
+
+.location_details img{
   width: 100%;
-  border: 2px solid black;
+  border: 1px solid black;
   border-radius: 10px;
   margin-top: 5px;
   margin-bottom: 5px;
 }
 
-.shiny-file-input-progress .progress-bar {
-	background-color: #0c4b4c;
+.modal-body button {
+  margin-bottom: 5px;
+}
+
+.modal-sm .modal-body button {
+  width: 100%;
 }

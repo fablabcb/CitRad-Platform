@@ -4,16 +4,16 @@ page_fillable(fillable_mobile = T, title = "CitRad - Datenplattform", collapsibl
               div(class="citrad-navbar",
                   div(class="nav-items", div(class="logo", includeHTML("www/logo.svg"))),
                   div(class="nav-items nav-spacer"),
-                  div(class="nav-items",
-                      div(class="dropdown", tabindex="1",
-                          div(class="dropbtn", icon("map"), span(class="label", "Karte")),
-                          div(class="dropdown-content",
-                              actionLink("show_satellite", "Luftbild", icon("satellite")),
-                              actionLink("show_speed", "Geschwindigkeit", icon("gauge-high")),
-                              actionLink("show_traffic", "Verkehr", icon("car-side"))
-                          )
-                      )
-                  ),
+                  # div(class="nav-items",
+                  #     div(class="dropdown", tabindex="1",
+                  #         div(class="dropbtn", icon("map"), span(class="label", "Karte")),
+                  #         div(class="dropdown-content",
+                  #             actionLink("show_satellite", "Luftbild", icon("satellite")),
+                  #             actionLink("show_speed", "Geschwindigkeit", icon("gauge-high")),
+                  #             actionLink("show_traffic", "Verkehr", icon("car-side"))
+                  #         )
+                  #     )
+                  # ),
                   div(class="nav-items",
                     div(class="dropdown", tabindex="2",
                       div(class="dropbtn", span(icon("location-dot")), span(class="label", "Standorte")),

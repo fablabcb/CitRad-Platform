@@ -9,7 +9,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
       dates_with_data <- dbGetQuery(db, query) %>% tibble
 
       showModal(modalDialog(size="xl", easyClose = T,
-        title=str_glue("Daten anzeigen für {location_details$street_name}"),
+        title=str_glue("Daten {location_details$street_name}"),
 
 
 
@@ -20,8 +20,8 @@ SERVER_show_data <- function(id, db, location_id, show_data){
         plotOutput(ns("spectrum"), height = "450px", width = "600px"),
         fluidRow(class="spectrum_navigation",
           column(3,
-            actionButton(ns("previous_car"), "Voriges"),
-            actionButton(ns("next_car"), "Nächstes"),
+            actionButton(ns("previous_car"), "Voriges", inline=T),
+            actionButton(ns("next_car"), "Nächstes", inline=T),
           )
         ),
         fluidRow(
@@ -89,7 +89,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
 
 
       breaks <- car_detections()$timestamp %>% round_date("hour") %>% unique
-      #browser()
+
       cars_per_hour <- car_detections() %>%
         mutate(timestamp = floor_date(timestamp, "hour")) %>%
         group_by(timestamp, isForward) %>%

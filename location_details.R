@@ -1,4 +1,4 @@
-SERVER_location_details <- function(id, db, location_id, show_location_details_button){
+SERVER_location_details <- function(id, db, userID, location_id, show_location_details_button){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
@@ -9,6 +9,7 @@ SERVER_location_details <- function(id, db, location_id, show_location_details_b
         dbGetQuery(db, str_glue("
             SELECT
               sensor_locations.id,
+              sensor_locations.user_id,
               sensor_locations.street_name,
               sensor_locations.date_created,
               sensor_locations.user_speedlimit,
@@ -38,23 +39,32 @@ SERVER_location_details <- function(id, db, location_id, show_location_details_b
               sensor_locations.id = {location_id()}
                                                   "))
 
+      my_datasets <- dbGetQuery(db, str_glue("SELECT count(*) from file_uploads WHERE location_id = {location_id()} and user_id = {userID()}"))$count
 
+      lab <- function(x, ...){
+        div(class="details", div(class="label", x), div(class="value", ...))
+      }
 
       showModal(modalDialog(
+        class="location_details",
         easyClose = T,
-        title = str_glue("Standort Details für Standort {location_id()}"),
-        p("id: ", location$id),
-        p("Straßenname: ", location$street_name),
-        p("Straßenname Sorbisch: ", location$`street_name:hsb`),
-        p("angelegt am: ", floor_date(location$date_created, "minute")),
-        p("Einbahnstraße: ", c("nein", "ja")[location$oneway +1]),
-        p("Fahrspuren: ", location$lanes),
-        p("Messrichtung: ", azimuth_to_direction(location$direction), icon("arrow-up", style = str_glue("transform: rotate({location$direction}deg);")), str_glue(" ({location$direction}° von Nord)")),
-        p("OpenStreetMap Geschwindigkeit: ", location$osm_speedlimit, "km/h"),
-        textInput(ns("user_speedlimit"), "Geschwindigkeitsbegrenzung", value = location$user_speedlimit),
-        p("Notizen: ", location$notes),
-        p("Anzahl an Datensätzen: ", location$num_files),
-
+        title = str_glue("Details zu Standort {location_id()}"),
+        lab("Straße:", location$street_name),
+        lab("Sorbischer Name:", location$`street_name:hsb`),
+        lab("angelegt am:", floor_date(location$date_created, "minute")),
+        lab("Einbahnstraße:", ifelse(is.na(location$oneway), "unbekannt", c("nein", "ja")[location$oneway +1])),
+        lab("Fahrspuren:", ifelse(is.na(location$lanes), "unbekannt", location$lanes)),
+        lab("Messrichtung:", azimuth_to_direction(location$direction), icon("arrow-up", style = str_glue("transform: rotate({location$direction}deg);")), str_glue(" ({location$direction}° von Nord)")),
+        lab("Geschwindigkeitsbegrenzung (OpenStreetMap): ", location$osm_speedlimit, "km/h"),
+        lab("Geschwindigkeitsbegrenzung (Benutzer): ", location$user_speedlimit, "km/h"),
+        if(isTruthy(location$notes)) p("Notizen: ", location$notes),
+        lab("Anzahl an Datensätzen: ", if_else(is.na(location$num_files), 0, location$num_files), if_else(isTruthy(my_datasets>0), paste0("(", my_datasets, " eigene)"), "")),
+        if(!is.null(userID())){
+          span(if(my_datasets>0) actionButton(ns("edit_location_data"), "Datensätze verwalten", inline=T),
+          if(userID()==location$user_id) actionButton(ns("edit_location"), "Standort bearbeiten", inline=T))
+        }else{
+          p("Bitte einloggen um Datensätze zu verwalten.")
+        },
         uiOutput(ns("location_images")),
         footer = list(
           modalButton("Schließen")
@@ -63,6 +73,7 @@ SERVER_location_details <- function(id, db, location_id, show_location_details_b
     })
 
     images <- reactive({
+      show_location_details_button()
       req(location_id())
       dbGetQuery(db, str_glue("
                 SELECT
@@ -85,9 +96,16 @@ SERVER_location_details <- function(id, db, location_id, show_location_details_b
         hash <- images()$hash[i] %>% str_remove("\\n")
         gsub("\r", "", images()$hash[i])
         filename_out <- paste0("location_images/", hash, extension)
-        out[[i]] <- img(src=filename_out, class="Standort_detail")
+        out[[i]] <- img(src=filename_out, class="photo")
       }
       return(out)
     })
+
+    return(
+      list(
+        edit_location_data = reactive(input$edit_location_data),
+        edit_location = reactive(input$edit_location)
+      )
+    )
   })
 }

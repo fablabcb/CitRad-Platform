@@ -80,11 +80,13 @@ function(input, output, session) {
 
   SERVER_show_data("show_data", db, location_id = reactive(input$show_data_for_id), show_data=reactive(input$show_data))
 
-  SERVER_location_details("location_details", db, location_id = reactive(input$show_location_details_for_id), reactive(input$show_location_details))
+  location_details_buttons <- SERVER_location_details("location_details", db, userID= reactive(userInfo()$id), location_id = reactive(input$show_location_details_for_id), reactive(input$show_location_details))
+
+  SERVER_edit_data("edit_data", db, userID = reactive(userInfo()$id), location_id = reactive(input$show_location_details_for_id), edit_location_button = location_details_buttons$edit_location_data)
+
+  SERVER_edit_location("edit_location", db, userID = reactive(userInfo()$id), location_id = reactive(input$show_location_details_for_id), edit_location_button = location_details_buttons$edit_location)
 
   SERVER_my_uploads("my_uploads", db, reactive(userInfo()$id), reactive(input$show_uploads))
-
-
 
 
   onStop(function(){
