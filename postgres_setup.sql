@@ -148,6 +148,7 @@ CREATE TABLE "car_detections" (
   "isForward" integer,
   "sampleCount" integer,
   "medianSpeed" real,
+  "hann_window" integer,
   "source" car_detection_source DEFAULT 'sensor unit',
   "file_id" integer NOT NULL,
   CONSTRAINT "pk_car_detections" PRIMARY KEY ("file_id", "timestamp"),

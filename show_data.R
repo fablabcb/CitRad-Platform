@@ -8,14 +8,20 @@ SERVER_show_data <- function(id, db, location_id, show_data){
       query <- str_glue("SELECT date_trunc('day', timestamp) as day, count(id) FROM car_detections WHERE location_id = {location_id()} GROUP BY day;")
       dates_with_data <- dbGetQuery(db, query) %>% tibble
 
+      group <- function(x){
+        div(class="col-lg-2 col-md-4", x)
+      }
+
       showModal(modalDialog(size="xl", easyClose = T,
         title=str_glue("Daten {location_details$street_name}"),
 
 
 
-        selectInput(ns("date"), label = "Messdatum", choices = c(dates_with_data$day)),
-        selectInput(ns("car_detections_source"), label="Datenquelle", choices=c("Erkennung auf Gerät"="sensor unit", "Erkennung auf Server"="R script")),
-        checkboxInput(ns("heatmap"), label = "Heatmap"),
+        fluidRow(
+          div(class="col-lg-3 col-md-6", selectInput(ns("date"), label = "Messdatum", choices = c(dates_with_data$day))),
+          div(class="col-lg-4 col-md-6", selectInput(ns("car_detections_source"), label="Datenquelle", choices=c("Erkennung auf Gerät"="sensor unit", "Erkennung auf Server"="R script"))),
+          div(class="col-lg-2 col-md-4", checkboxInput(ns("heatmap"), label = "Heatmap"))
+        ),
         girafeOutput(ns("scatterplot"), height = "550px"),
         plotOutput(ns("spectrum"), height = "450px", width = "600px"),
         fluidRow(class="spectrum_navigation",
@@ -25,18 +31,18 @@ SERVER_show_data <- function(id, db, location_id, show_data){
           )
         ),
         fluidRow(
-          column(2, input_switch(ns("show_geometry"), "zeige Geometrie", value = F)),
-          column(2, numericInput(ns("speed_correction"), "Geschwindigkeit", value = 30, min = 0, max = 150)),
-          column(2, numericInput(ns("y_distance"), "Distanz zum Sensor", value = 2, min = 0.5, max = 30)),
-          column(2, numericInput(ns("car_length"), "Fahrzeuglänge", value = 5, min = 1, max = 50, step=1)),
-          column(2, numericInput(ns("time_offset"), "Zeitversatz", value=0, step=100))
+          group(input_switch(ns("show_geometry"), "zeige Geometrie", value = F)),
+          group( numericInput(ns("speed_correction"), "Geschwindigkeit", value = 30, min = 0, max = 150)),
+          group( numericInput(ns("y_distance"), "Distanz zum Sensor", value = 2, min = 0.5, max = 30)),
+          group( numericInput(ns("car_length"), "Fahrzeuglänge", value = 5, min = 1, max = 50, step=1)),
+          group(numericInput(ns("time_offset"), "Zeitversatz", value=0, step=100))
         ),
         fluidRow(
-          column(2, input_switch(ns("show_power"), "zeige Power", value=F)),
-          column(2, numericInput(ns("noise_floor_cutoff"), "Noise Floor Cutoff", value=-160, step = 10)),
-          column(2, numericInput(ns("seconds_before"), "Sekunden vorher", value=10, step=1)),
-          column(2, numericInput(ns("seconds_after"), "Sekunden danach", value=10, step=1)),
-          column(2, downloadButton(ns("download_data"), "downlaod numpy"))
+          group(input_switch(ns("show_power"), "zeige Power", value=F)),
+          group(numericInput(ns("noise_floor_cutoff"), "Noise Floor Cutoff", value=-160, step = 10)),
+          group(numericInput(ns("seconds_before"), "Sekunden vorher", value=10, step=1)),
+          group(numericInput(ns("seconds_after"), "Sekunden danach", value=10, step=1)),
+          group(downloadButton(ns("download_data"), "downlaod numpy"))
         ),
 
 
@@ -48,7 +54,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
 
 
     car_detections <- reactive({
-      query <- str_glue("SELECT * FROM car_detections WHERE location_id = {location_id()} AND date_trunc('day', timestamp) = '{input$date}' AND source = '{input$car_detections_source}';")
+      query <- str_glue("SELECT * FROM car_detections WHERE location_id = {location_id()} AND date_trunc('day', timestamp) = '{input$date}' AND source = '{input$car_detections_source}' ORDER BY timestamp;")
       dbGetQuery(db, query) %>% tibble
     })
 
@@ -67,6 +73,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
 
       scatterplot <- car_detections() %>%
         mutate(Fahrtrichtung = azimuth_to_direction(c(direction+180, direction))[(isForward==1)+1]) %>%
+        mutate(n = 1:n()) %>%
         ggplot() +
         scale_y_continuous(breaks=(1:12)*10, minor_breaks = F, name="Geschwindigkeit (km/h)") +
         scale_x_datetime("Uhrzeit") +
@@ -81,7 +88,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
           facet_grid(Fahrtrichtung~.)
       }else{
         scatterplot <- scatterplot +
-          aes(x=timestamp, y=medianSpeed, col=Fahrtrichtung, tooltip = paste(timestamp, "\n", round(medianSpeed), " km/h\nFahrtrichtung", Fahrtrichtung), data_id = id) +
+          aes(x=timestamp, y=medianSpeed, col=Fahrtrichtung, tooltip = paste(timestamp, "\n", round(medianSpeed), " km/h\nFahrtrichtung", Fahrtrichtung), data_id = n) +
           geom_rect_interactive(inherit.aes = F, ymin=0, ymax=120, aes(xmin = start_time, xmax = end_time, data_id = id, tooltip = basename(filename)), fill="gray90", data = bin_file_timespans()) +
           geom_hline(yintercept = location_details()$osm_speed, col="red") +
           geom_point_interactive()
@@ -125,7 +132,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
     })
 
     selected_points <- reactive({
-      points <- car_detections() %>% filter(id==selected_dot())
+      points <- car_detections()[selected_dot(),]
       updateNumericInput(session, "speed_correction", value =  points$medianSpeed)
       return(points)
     })
@@ -141,8 +148,22 @@ SERVER_show_data <- function(id, db, location_id, show_data){
 
       #selected_points <- car_detections()[selected$pointNumber,]
 
-      start_time <- min(selected_points()$timestamp) - seconds(input$seconds_before)
-      end_time <- max(selected_points()$timestamp) + seconds(input$seconds_after)
+      start_time <- min(selected_points()$timestamp) - seconds(20)
+      end_time <- max(selected_points()$timestamp) + seconds(20)
+
+
+      byte_index <- dbGetQuery(db, str_glue("SELECT * from bin_index WHERE location_id = {location_id()} AND timestamp >= '{start_time}' AND timestamp <= '{end_time}' ORDER BY timestamp;")) %>% tibble
+
+      hann_window <- selected_points()$hann_window
+      if(is.na(hann_window)) hann_window <- 31
+      if(!selected_points()$isForward) hann_window <- 0
+
+      corrected_detection_time <- byte_index$timestamp[which(selected_points()$milliseconds == byte_index$milliseconds)- hann_window]
+
+
+      start_time <- corrected_detection_time - seconds(input$seconds_before)
+      end_time <- corrected_detection_time + seconds(input$seconds_after)
+
 
       byte_index <- dbGetQuery(db, str_glue("SELECT * from bin_index WHERE location_id = {location_id()} AND timestamp >= '{start_time}' AND timestamp <= '{end_time}' ORDER BY timestamp;")) %>% tibble
 
@@ -178,11 +199,10 @@ SERVER_show_data <- function(id, db, location_id, show_data){
       data <- data$data
 
 
-      tick_positions <- tibble(index = 1:length(timestamps), timestamp = timestamps) %>%
+      tick_positions <- tibble(index = 1:length(timestamps), timestamp = timestamps, milliseconds=milliseconds) %>%
         group_by(time = floor_date(timestamp, "1 seconds")) %>%
-        summarise(position = first(index)) %>%
+        summarise(position = first(index), milliseconds = first(milliseconds)) %>%
         mutate(label = time %>% with_tz("UTC") %>% format("%S") ) %>%
-
         tail(-1)
 
       sample_rate = metadata$sample_rate
@@ -191,12 +211,34 @@ SERVER_show_data <- function(id, db, location_id, show_data){
 
       data[data<(input$noise_floor_cutoff)] <- input$noise_floor_cutoff
 
+      detection_index_position <- which(milliseconds == selected_points()$milliseconds)
+      timestamp_index_position <- which.min(abs(timestamps- selected_points()$timestamp))
+
+      message("bin timestamp: ", timestamps[detection_index_position])
+      message("car timestamp: ", selected_points()$timestamp)
+
+      hann_window <- if_else(is.na(selected_points()$hann_window), 31, selected_points()$hann_window)
+
+      if(selected_points()$isForward){
+        t0 <- timestamps[detection_index_position-hann_window]
+      }else{
+        t0 = timestamps[detection_index_position]
+      }
+
 
       par(mai=c(.6,.6,.3,.4), bg="transparent", las=3, cex.main=1, mgp=c(1.9, .4, 0))
       image.plot(1:nrow(data), speeds, data, col=magma(100), useRaster = T, xaxt="n", yaxt="n", xlab="time (s)", ylab="speed (km/h)", main=timestamps[1] %>% format(str_glue("{location_details()$street_name} %Y-%m-%d %H:%M")), font.main = 1, legend.lab="dBFS", legend.mar =5.5, legend.line=3, zlim=c(input$noise_floor_cutoff, -40))
       par(las=1, tck=-0.015)
       axis(2)
       axis(1, tick_positions$position, tick_positions$label, mgp=c(1.8, .5, 0))
+
+      # abline(v=detection_index_position, col="white")
+      # abline(v=timestamp_index_position, lty=3, col="white")
+      # abline(v=detection_index_position-31, lty=4, col="white")
+      # text(mean(c(detection_index_position, timestamp_index_position)), 120, (selected_points()$timestamp-timestamps[detection_index_position]) %>% round(3) %>% paste("ms"), col="white")
+      # text(mean(c(detection_index_position, timestamp_index_position)), 100, (timestamp_index_position-detection_index_position) %>% round(3) %>% paste("pixel"), col="white")
+      # legend("bottomright", title="detection from", text.col="white", col="white", legend=c("milliseconds", "timestamp", "millis-hann"), lty = c(1,3,4), bty="n")
+
       if(input$show_power){
         mean_power <- apply(data[,speeds>10 & speeds<50], 1, mean)
         lines(1:nrow(data), mean_power, col="white")
@@ -205,9 +247,9 @@ SERVER_show_data <- function(id, db, location_id, show_data){
       #abline(v=which.min(abs(timestamps - selected_points()$timestamp)), lty=3)
       if(input$show_geometry){
         abline(h=0)
-        car_geometry(t0=selected_points()$timestamp+milliseconds(input$time_offset), speed = input$speed_correction, time = timestamps, milliseconds, input$y_distance, length=input$car_length)
+        car_geometry(t0=t0+milliseconds(input$time_offset), speed = (input$speed_correction), time = timestamps, milliseconds, input$y_distance, length=input$car_length*c(1,-1)[selected_points()$isForward +1])
 
-        geometry_data <<- list(t0=selected_points()$timestamp+milliseconds(input$time_offset), speed = input$speed_correction, time = timestamps, milliseconds=milliseconds, y=input$y_distance, length=input$car_length, speed_conversion=speed_conversion, data=data)
+        # geometry_data <<- list(t0=selected_points()$timestamp+milliseconds(input$time_offset), speed = isolate(input$speed_correction), time = timestamps, milliseconds=milliseconds, y=input$y_distance, length=input$car_length, speed_conversion=speed_conversion, data=data)
       }
     })
 

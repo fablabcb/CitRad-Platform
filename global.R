@@ -47,6 +47,7 @@ load("osmdata_splitted.RData")
 debug=T
 
 options(shiny.maxRequestSize=100*1024^2)
+options(digits.secs=3)
 
 
 drv <- dbDriver("PostgreSQL")

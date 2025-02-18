@@ -24,6 +24,8 @@ read_car_detections <- function(filename, id, location_id, debug=F){
   values <- sapply(header, function(x) strsplit(x, "=")[[1]][2])
 
   metadata <- as.vector(as.list(setNames(values, keys)))
+  if(is.null(metadata$fileFormat)) metadata$fileFormat <- 1
+  if(!is.null(metadata$timeOffset)) metadata$timeOffset <- as.numeric(metadata$timeOffset)
   if(is.null(metadata$teensyId)){
     device_id = NA
   }else{
@@ -35,15 +37,16 @@ read_car_detections <- function(filename, id, location_id, debug=F){
       strtoi(16L)
   }
 
-
   start_time <- filename %>%
     str_extract("(?<=cars_).*") %>%
     as.POSIXct(format="%Y-%m-%d_%H-%M-%S")
+
   cars <- read_csv(filename, comment = "//") %>%
     rename(milliseconds=timestamp) %>%
-    mutate(timestamp = start_time + milliseconds(milliseconds) - milliseconds(milliseconds[1])) %>%
+    mutate(timestamp = start_time + milliseconds(milliseconds) - ifelse(is.null(!metadata$timeOffset), milliseconds(metadata$timeOffset), milliseconds(milliseconds[1]))) %>%
     mutate(file_id=id) %>%
     mutate(source="sensor unit") %>%
+    mutate(hann_window=metadata$carTriggerSignalSmoothingFactor) %>%
     mutate(location_id=location_id)
 
   query <- str_glue("UPDATE file_uploads
@@ -55,6 +58,7 @@ read_car_detections <- function(filename, id, location_id, debug=F){
                 device_id = '{device_id}'
               WHERE id = '{id}'")
   dbGetQuery(db, query)
+
 
   if(debug) message("writing csv data to db")
   dbWriteTable(db, "car_detections", cars, append=T, row.names=F)
@@ -75,7 +79,6 @@ read_metrics <- function(filename, id, location_id, debug=F){
     select(file_id, timestamp, milliseconds, speed, speed_reverse, strength, strength_reverse, meanAmplitudeForPedestrians, meanAmplitudeForCars, meanAmplitudeForNoiseLevel, dynamic_noise_level, car_trigger_signal)
 
   #str_replace_all(colnames(metrics), pattern=c("^mean_amplitude$"="meanAmplitudeForNoiseLevel", "^pedestrian_mean_amplitude$"="meanAmplitudeForPedestrians", ))
-
 
   colnames(metrics) <- colnames(metrics) %>% str_remove("_[0-9]+")
   if(debug) message("writing csv data to db")
