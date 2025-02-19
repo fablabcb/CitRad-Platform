@@ -65,7 +65,7 @@ SERVER_location_details <- function(id, db, userID, location_id, show_location_d
         }else{
           p("Bitte einloggen um Datensätze zu verwalten.")
         },
-        uiOutput(ns("location_images")),
+        htmlOutput(ns("location_images")),
         footer = list(
           modalButton("Schließen")
         )
@@ -91,14 +91,48 @@ SERVER_location_details <- function(id, db, userID, location_id, show_location_d
 
       req(nrow(images())>0)
       out <- list()
+      first = T
       for(i in 1:nrow(images())){
         extension <- images()$filename[i] %>% str_extract("\\.[^\\.]+$")
         hash <- images()$hash[i] %>% str_remove("\\n")
         gsub("\r", "", images()$hash[i])
         filename_out <- paste0("location_images/", hash, extension)
-        out[[i]] <- img(src=filename_out, class="photo")
+        out[[i]] <- div(class=ifelse(first, "carousel-item active", "carousel-item"), img(src=filename_out, class="d-block w-100"))
+        first=F
       }
-      return(out)
+
+
+
+
+
+      if(length(out)>1){
+        buttons <- paste0(str_glue('<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="{(1:length(out))-1}" class="{ifelse(1:length(out)==1,"active","") }" aria-current="true"></button>'), collapse="")
+
+        out <- tagList(out)
+        return(HTML(str_glue('
+    <div id="carouselExampleIndicators" class="carousel slide">
+      <div class="carousel-indicators">
+          {buttons}
+      </div>
+      <div class="carousel-inner">
+
+       {out}
+
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+        ')))
+      }else{
+        return(out[[1]])
+      }
+
     })
 
     return(
