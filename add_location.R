@@ -75,7 +75,7 @@ SERVER_add_location <- function(id, userID, add_location_Button, map_click, map_
           #text_field = get_column("name"),
           text_justify = "left",
           icon_image = "icon-citrad_arrow",
-          icon_offset = c(0,-9),
+          icon_offset = c(0,0),
           icon_rotate = street_azimuth,
           icon_pitch_alignment = "map",
           icon_rotation_alignment = "map",
