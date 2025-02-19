@@ -232,9 +232,10 @@ SERVER_administration <- function(id, userID, db, open_admin_panel){
       location_id = location_to_edit()$id
       direction = location_to_edit()$direction
       if(input$reverse_direction) direction <- (direction + 180) %% 360
+      user_speedlimit <- ifelse(input$user_speedlimit=="", "null", input$user_speedlimit)
       dbGetQuery(db, str_glue("UPDATE sensor_locations SET
                                      notes = '{input$notes}',
-                                     user_speedlimit = '{input$user_speedlimit}',
+                                     user_speedlimit = {user_speedlimit},
                                      direction = '{direction}'
                                      WHERE id = {location_id};"))
 
