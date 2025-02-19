@@ -41,9 +41,16 @@ read_car_detections <- function(filename, id, location_id, debug=F){
     str_extract("(?<=cars_).*") %>%
     as.POSIXct(format="%Y-%m-%d_%H-%M-%S")
 
-  cars <- read_csv(filename, comment = "//") %>%
+  cars <- read_csv(filename, comment = "//")
+
+  if(nrow(cars)==0){
+    showNotification(id=filename, str_glue("Die Datei {filename} enthält keine Daten."), duration = NULL)
+    return()
+  }
+
+  cars <- cars %>%
     rename(milliseconds=timestamp) %>%
-    mutate(timestamp = start_time + milliseconds(milliseconds) - ifelse(is.null(!metadata$timeOffset), milliseconds(metadata$timeOffset), milliseconds(milliseconds[1]))) %>%
+    mutate(timestamp = start_time + milliseconds(milliseconds) - ifelse(!is.null(metadata$timeOffset), milliseconds(metadata$timeOffset), milliseconds(milliseconds[1]))) %>%
     mutate(file_id=id) %>%
     mutate(source="sensor unit") %>%
     mutate(hann_window=metadata$carTriggerSignalSmoothingFactor) %>%
