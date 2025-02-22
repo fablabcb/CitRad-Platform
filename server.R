@@ -82,7 +82,7 @@ function(input, output, session) {
 
   location_details_buttons <- SERVER_location_details("location_details", db, userID= reactive(userInfo()$id), location_id = reactive(input$show_location_details_for_id), reactive(input$show_location_details))
 
-  SERVER_edit_data("edit_data", db, userID = reactive(userInfo()$id), location_id = reactive(input$show_location_details_for_id), edit_location_button = location_details_buttons$edit_location_data)
+  SERVER_edit_data("edit_data", db, userID = reactive(userInfo()$id), location_id = reactive(input$show_location_details_for_id), edit_location_data_button = location_details_buttons$edit_location_data)
 
   SERVER_edit_location("edit_location", db, userID = reactive(userInfo()$id), location_id = reactive(input$show_location_details_for_id), edit_location_button = location_details_buttons$edit_location)
 

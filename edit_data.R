@@ -1,11 +1,11 @@
-SERVER_edit_data <- function(id, db, userID, location_id, edit_location_button){
+SERVER_edit_data <- function(id, db, userID, location_id, edit_location_data_button){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
     reload_data <- reactiveVal(0)
 
     edit_location_modal <- reactive(isolate({
-      modalDialog(size = "xl",
+      modalDialog(size = "xl", easyClose = T,
                   title = str_glue("Daten für Standort {location_id()} verwalten"),
                   reactableOutput(ns("location_data")),
                   actionButton(ns("delete_dataset"), "Ausgewählte löschen", class="btn-danger"),
@@ -16,7 +16,7 @@ SERVER_edit_data <- function(id, db, userID, location_id, edit_location_button){
       )
     }))
 
-    observeEvent(edit_location_button(), ignoreInit = T, {
+    observeEvent(edit_location_data_button(), ignoreInit = T, {
       showModal(edit_location_modal())
     })
 
@@ -34,7 +34,11 @@ SERVER_edit_data <- function(id, db, userID, location_id, edit_location_button){
                   highlight = TRUE,
                   fullWidth = TRUE,
                   defaultPageSize = 100,
+                  theme = reactableTheme(
+                    rowSelectedStyle = list(backgroundColor = "#ffcc00")
+                  ),
                   columns = list(
+                    .selection = colDef(sticky = "left"),
                     id = colDef(minWidth=50),
                     filetype = colDef(minWidth=150),
                     file_version = colDef(minWidth=110),
