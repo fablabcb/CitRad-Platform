@@ -25,19 +25,19 @@ SERVER_user_management <- function(id, db, show_profile){
       }
     })
 
-    login_form <- modalDialog(
+    login_form <- tags$form(modalDialog(
       easyClose = T,
       size="s",
       title="Bitte einloggen",
-      textInput(ns("username"), "Benutzername"),
+      usernameInput(ns("username"), "Benutzername"),
       passwordInput(ns("password"), "Passwort"),
       p(textOutput(ns("login_errors"))),
       p("oder ", actionLink(ns("go_to_registration"), "Registrieren")),
       footer = tagList(
         modalButton("Abbrechen"),
-        actionButton(ns("login"), "Login", class="btn-primary")
+        loginButton(ns("login"), "Login", class="btn-primary")
       )
-    )
+    ))
 
 
     observeEvent(input$go_to_registration, {
@@ -46,7 +46,7 @@ SERVER_user_management <- function(id, db, show_profile){
         title="Registrierung",
         textInput(ns("register_username"), "Benutzername"),
         textInput(ns("register_email"), "E-mail"),
-        passwordInput(ns("register_password"), "Passwort"),
+        autocompletePasswordInput(ns("register_password"), "Passwort"),
         p(textOutput(ns("register_errors"))),
         footer = tagList(
           modalButton("Abbrechen"),

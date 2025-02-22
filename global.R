@@ -96,3 +96,30 @@ location_buttons <- '
         </p>
       </div>
     '
+
+usernameInput <- function (inputId, label, value = "", width = NULL, placeholder = NULL){
+  value <- restoreInput(id = inputId, default = value)
+  div(class = "form-group shiny-input-container", style = css(width = shiny::validateCssUnit(width)),
+      shiny:::shinyInputLabel(inputId, label), tags$input(id = inputId,
+                                                  type = "text", class = "shiny-input-text form-control",
+                                                  onfocus="this.select()",
+                                                  autocomplete="username",
+                                                  value = value, placeholder = placeholder))
+}
+
+autocompletePasswordInput <- function (inputId, label, value = "", width = NULL, placeholder = NULL){
+  div(class = "form-group shiny-input-container", style = css(width = shiny::validateCssUnit(width)),
+      shiny:::shinyInputLabel(inputId, label), tags$input(id = inputId,
+                                                  type = "password", class = "shiny-input-password form-control",
+                                                  autocomplete="current-password",
+                                                  value = value, placeholder = placeholder))
+}
+
+loginButton <- function (inputId, label, icon = NULL, width = NULL, disabled = FALSE, ...){
+  value <- restoreInput(id = inputId, default = NULL)
+  tags$button(id = inputId, style = css(width = shiny::validateCssUnit(width)),
+              type = "submit", class = "btn btn-default action-button",
+              `data-val` = value, disabled = if(isTRUE(disabled)) NA
+              else NULL, list(shiny:::validateIcon(icon), label), ...)
+}
+

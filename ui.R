@@ -25,7 +25,7 @@ page_fillable(fillable_mobile = T, title = "CitRad - Datenplattform", collapsibl
                       )
                     )
                   ),
-                  div(class="nav-items", actionLink("show_profile", span(class="label", "Profil"), icon = icon("user")))
+                  div(class="nav-items", actionLink("show_profile", tabindex="1", span(class="label", "Profil"), icon = icon("user")))
 
               ),
               div(class="map-area",
