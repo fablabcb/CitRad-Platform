@@ -14,6 +14,7 @@ page_fillable(fillable_mobile = T, title = "CitRad - Datenplattform", collapsibl
                   #         )
                   #     )
                   # ),
+                  shinyjs::hidden(div(id="admin_menu", class="nav-items", actionLink("open_admin_panel", span(class="label", "Admin"), icon= icon("users-gear")))),
                   div(class="nav-items",
                     div(class="dropdown", tabindex="2",
                       div(class="dropbtn", span(icon("location-dot")), span(class="label", "Standorte")),
@@ -24,9 +25,7 @@ page_fillable(fillable_mobile = T, title = "CitRad - Datenplattform", collapsibl
                       )
                     )
                   ),
-
-                  div(class="nav-items", actionLink("show_profile", span(class="label", "Profil"), icon = icon("user"))),
-                  shinyjs::hidden(div(id="admin_menu", class="nav-items", actionLink("open_admin_panel", span(class="label", "Admin"), icon= icon("users-gear"))))
+                  div(class="nav-items", actionLink("show_profile", span(class="label", "Profil"), icon = icon("user")))
 
               ),
               div(class="map-area",

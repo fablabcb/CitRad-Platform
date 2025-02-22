@@ -60,8 +60,11 @@ SERVER_location_details <- function(id, db, userID, location_id, show_location_d
         if(isTruthy(location$notes)) p("Notizen: ", location$notes),
         lab("Anzahl an Datensätzen: ", if_else(is.na(location$num_files), 0, location$num_files), if_else(isTruthy(my_datasets>0), paste0("(", my_datasets, " eigene)"), "")),
         if(!is.null(userID())){
-          span(if(my_datasets>0) actionButton(ns("edit_location_data"), "Datensätze verwalten", inline=T),
-          if(userID()==location$user_id) actionButton(ns("edit_location"), "Standort bearbeiten", inline=T))
+          span(
+          actionButton(ns("edit_location_data"), "Datensätze verwalten", inline=T, disabled = !(my_datasets>0), title="Es können nur eigene Daten bearbeitet werden."),
+          actionButton(ns("edit_location"), "Standort bearbeiten", inline=T, disabled = !(userID()==location$user_id), title="Es können nur eigene Standorte bearbeitet werden."),
+          p("Hinweis: es können nur eigene Daten und Standorte bearbeitet werden.")
+          )
         }else{
           p("Bitte einloggen um Datensätze zu verwalten.")
         },
