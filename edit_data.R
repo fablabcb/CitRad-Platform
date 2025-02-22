@@ -48,15 +48,19 @@ SERVER_edit_data <- function(id, db, userID, location_id, edit_location_button){
     })
 
     observeEvent(input$delete_dataset, ignoreInit = T, {
-      showModal(modalDialog(
-        title="Datensatz löschen",
-        p("Wollen Sie diesen Datensatz wirklich löschen?"),
-        footer = list(
-          actionButton(ns("cancel_data_delete"), "Abbrechen"),
-          actionButton(ns("confirm_data_delete"), "Löschen", class="btn-danger")
-        )
+      if(is.null(getReactableState("location_data", "selected"))){
+        showNotification("Wählen Sie in der Liste einen oder mehrere Datensätze aus um sie zu löschen.")
+      }else{
+        showModal(modalDialog(
+          title="Datensatz löschen",
+          p("Wollen Sie diesen Datensatz wirklich löschen?"),
+          footer = list(
+            actionButton(ns("cancel_data_delete"), "Abbrechen"),
+            actionButton(ns("confirm_data_delete"), "Löschen", class="btn-danger")
+          )
 
-      ))
+        ))
+      }
     })
 
     observeEvent(input$confirm_data_delete, ignoreInit = T, {
