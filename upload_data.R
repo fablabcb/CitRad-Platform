@@ -40,6 +40,11 @@ SERVER_upload_data <- function(id, db, location_id, show_upload, userID){
 
       for(i in 1:nrow(files)){
         file = files[i,]
+        if(file$size == 0){
+          message("skipping zero length file")
+          showNotification(str_glue("Datei {file$name} hat Größe 0 Byte"))
+          next()
+        }
         file.copy(file$datapath, file.path(data_folder, file$name), copy.date = T)
         filename <- file.path(data_folder, file$name)
         filetype_extension <- str_extract(filename, '[^\\.]+$')
@@ -71,12 +76,20 @@ SERVER_upload_data <- function(id, db, location_id, show_upload, userID){
           }
 
           id = dbGetQuery(db, query)$id
-          if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =F, shiny_notification=T)
-          #if(filetype == "spectrum" & input$process_bin_file) process_bin_to_db(filename, file_id=id, location_id=location_id())
-          #if(filetype == "metrics") read_metrics(filename, id, location_id=location_id())
-          if(filetype == "car_detections") read_car_detections(filename, id, location_id=location_id())
 
-          showNotification(str_glue("Datei {file$name} wurden hochgeladen mit id {id}."))
+          tryCatch({
+            if(filetype == "spectrum") index_binary_file(filename, id=id, location_id=location_id(), debug =F, shiny_notification=T)
+            #if(filetype == "spectrum" & input$process_bin_file) process_bin_to_db(filename, file_id=id, location_id=location_id())
+            #if(filetype == "metrics") read_metrics(filename, id, location_id=location_id())
+            if(filetype == "car_detections") read_car_detections(filename, id, location_id=location_id())
+
+            showNotification(str_glue("Datei {file$name} wurden hochgeladen mit id {id}."))
+
+            },
+            error=function(e){
+              showNotification(id = file$name, str_glue("Die Datei {file$name} konnte nicht verarbeitet werden. Fehler: {e}"), duration = NULL)
+            }
+          )
 
         }
       }
