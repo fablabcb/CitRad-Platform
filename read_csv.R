@@ -41,7 +41,8 @@ read_car_detections <- function(filename, id, location_id, debug=F){
     str_extract("(?<=cars_).*") %>%
     as.POSIXct(format="%Y-%m-%d_%H-%M-%S")
 
-  cars <- read_csv(filename, comment = "//", show_col_types = FALSE)
+  cars <- read_csv(filename, comment = "//", show_col_types = FALSE) %>%
+    filter(!(is.null(medianSpeed) | is.na(medianSpeed)))
 
   if(nrow(cars)==0){
     showNotification(id=filename, str_glue("Die Datei {filename} enthält keine Daten."), duration = NULL)
