@@ -26,7 +26,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
 
         plotOutput(ns("spectrum"), width = "100%"),
         fluidRow(class="spectrum_navigation",
-         div(class="col-md-3 col-sm-6",
+         div(class="col-md-12 col-sm-12",
             actionButton(ns("previous_car"), "Voriges", inline=T),
             actionButton(ns("next_car"), "Nächstes", inline=T),
           )
@@ -186,6 +186,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
       return(data)
     })
 
+    observe({data()})
 
     location_details <- reactive({
       dbGetQuery(db, str_glue("SELECT id, street_name, user_speedlimit, osm_speedlimit, direction from sensor_locations WHERE id = {location_id()};"))
@@ -193,7 +194,9 @@ SERVER_show_data <- function(id, db, location_id, show_data){
 
 
     output$spectrum <- renderPlot(res=100, {
-      data <- data()
+      input$speed_correction
+      data <- isolate(data())
+      selected_points <- isolate(selected_points())
       timestamps <- data$timestamps
       milliseconds <- data$milliseconds
       metadata <- list(file_version=data$file_version, start_time=data$start_time, num_fft_bins=data$num_fft_bins, iq_measurement=data$iq_measurement, sample_rate=data$sample_rate, n=data$n)
@@ -210,17 +213,17 @@ SERVER_show_data <- function(id, db, location_id, show_data){
       speed_conversion = (sample_rate/1024)/44.0
       speeds <- (1:1024-512) * speed_conversion
 
-      data[data<(input$noise_floor_cutoff)] <- input$noise_floor_cutoff
+      data[data<input$noise_floor_cutoff] <- input$noise_floor_cutoff
 
-      detection_index_position <- which(milliseconds == selected_points()$milliseconds)
-      timestamp_index_position <- which.min(abs(timestamps- selected_points()$timestamp))
+      detection_index_position <- which(milliseconds == selected_points$milliseconds)
+      timestamp_index_position <- which.min(abs(timestamps- selected_points$timestamp))
 
       message("bin timestamp: ", timestamps[detection_index_position])
-      message("car timestamp: ", selected_points()$timestamp)
+      message("car timestamp: ", selected_points$timestamp)
 
-      hann_window <- if_else(is.na(selected_points()$hann_window), 31, selected_points()$hann_window)
+      hann_window <- if_else(is.na(selected_points$hann_window), 31, selected_points$hann_window)
 
-      if(selected_points()$isForward){
+      if(selected_points$isForward){
         t0 <- timestamps[detection_index_position-hann_window]
       }else{
         t0 = timestamps[detection_index_position]
@@ -236,7 +239,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
       # abline(v=detection_index_position, col="white")
       # abline(v=timestamp_index_position, lty=3, col="white")
       # abline(v=detection_index_position-31, lty=4, col="white")
-      # text(mean(c(detection_index_position, timestamp_index_position)), 120, (selected_points()$timestamp-timestamps[detection_index_position]) %>% round(3) %>% paste("ms"), col="white")
+      # text(mean(c(detection_index_position, timestamp_index_position)), 120, (selected_points$timestamp-timestamps[detection_index_position]) %>% round(3) %>% paste("ms"), col="white")
       # text(mean(c(detection_index_position, timestamp_index_position)), 100, (timestamp_index_position-detection_index_position) %>% round(3) %>% paste("pixel"), col="white")
       # legend("bottomright", title="detection from", text.col="white", col="white", legend=c("milliseconds", "timestamp", "millis-hann"), lty = c(1,3,4), bty="n")
 
@@ -245,12 +248,12 @@ SERVER_show_data <- function(id, db, location_id, show_data){
         lines(1:nrow(data), mean_power, col="white")
         legend("bottomleft", legend = "mean amplitude between 10 and 50 km/h", text.col="white", bty="n")
       }
-      #abline(v=which.min(abs(timestamps - selected_points()$timestamp)), lty=3)
+      #abline(v=which.min(abs(timestamps - selected_points$timestamp)), lty=3)
       if(input$show_geometry){
         abline(h=0)
-        car_geometry(t0=t0+milliseconds(input$time_offset), speed = (input$speed_correction), time = timestamps, milliseconds, input$y_distance, length=input$car_length*c(1,-1)[selected_points()$isForward +1])
+        car_geometry(t0=t0+milliseconds(input$time_offset), speed = (input$speed_correction), time = timestamps, milliseconds, input$y_distance, length=input$car_length*c(1,-1)[selected_points$isForward +1])
 
-        # geometry_data <<- list(t0=selected_points()$timestamp+milliseconds(input$time_offset), speed = isolate(input$speed_correction), time = timestamps, milliseconds=milliseconds, y=input$y_distance, length=input$car_length, speed_conversion=speed_conversion, data=data)
+        # geometry_data <<- list(t0=selected_points$timestamp+milliseconds(input$time_offset), speed = input$speed_correction, time = timestamps, milliseconds=milliseconds, y=input$y_distance, length=input$car_length, speed_conversion=speed_conversion, data=data)
       }
     })
 
