@@ -45,7 +45,9 @@ SERVER_show_data <- function(id, db, location_id, show_data){
           group(numericInput(ns("seconds_after"), "Sekunden danach", value=10, step=1)),
           group(downloadButton(ns("download_data"), "downlaod numpy"))
         ),
-
+        fluidRow(
+          div(class="col-sm-6", checkboxInput(ns("show_legend"), "Legende anzeigen", value=F))
+        ),
 
         footer = tagList(
           actionButton(ns("close_modal"), "Schließen"),
@@ -218,8 +220,8 @@ SERVER_show_data <- function(id, db, location_id, show_data){
       detection_index_position <- which(milliseconds == selected_points$milliseconds)
       timestamp_index_position <- which.min(abs(timestamps- selected_points$timestamp))
 
-      message("bin timestamp: ", timestamps[detection_index_position])
-      message("car timestamp: ", selected_points$timestamp)
+      # message("bin timestamp: ", timestamps[detection_index_position])
+      # message("car timestamp: ", selected_points$timestamp)
 
       hann_window <- if_else(is.na(selected_points$hann_window), 31, selected_points$hann_window)
 
@@ -231,7 +233,12 @@ SERVER_show_data <- function(id, db, location_id, show_data){
 
 
       par(mai=c(.6,.6,.3,.4), bg="transparent", las=3, cex.main=1, mgp=c(1.9, .4, 0))
-      image.plot(1:nrow(data), speeds, data, col=magma(100), useRaster = T, xaxt="n", yaxt="n", xlab="time (s)", ylab="speed (km/h)", main=timestamps[1] %>% format(str_glue("{location_details()$street_name} %Y-%m-%d %H:%M")), font.main = 1, legend.lab="dBFS", legend.mar =5.5, legend.line=3, zlim=c(input$noise_floor_cutoff, -40))
+      if(input$show_legend){
+        image.plot(1:nrow(data), speeds, data, col=magma(100), useRaster = T, xaxt="n", yaxt="n", xlab="time (s)", ylab="speed (km/h)", main=timestamps[1] %>% format(str_glue("{location_details()$street_name} %Y-%m-%d %H:%M")), font.main = 1, legend.lab="dBFS", legend.mar =5.5, legend.line=3, zlim=c(input$noise_floor_cutoff, -40))
+      }else{
+        image(1:nrow(data), speeds, data, col=magma(100), useRaster = T, xaxt="n", yaxt="n", xlab="time (s)", ylab="speed (km/h)", main=timestamps[1] %>% format(str_glue("{location_details()$street_name} %Y-%m-%d %H:%M")), font.main = 1, zlim=c(input$noise_floor_cutoff, -40))
+      }
+
       par(las=1, tck=-0.015)
       axis(2)
       axis(1, tick_positions$position, tick_positions$label, mgp=c(1.8, .5, 0))
