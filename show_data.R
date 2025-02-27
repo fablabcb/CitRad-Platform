@@ -22,10 +22,11 @@ SERVER_show_data <- function(id, db, location_id, show_data){
           div(class="col-lg-4 col-md-6", selectInput(ns("car_detections_source"), label="Datenquelle", choices=c("Erkennung auf Gerät"="sensor unit", "Erkennung auf Server"="R script"))),
           div(class="col-lg-2 col-md-4", checkboxInput(ns("heatmap"), label = "Heatmap"))
         ),
-        girafeOutput(ns("scatterplot"), height = "550px"),
-        plotOutput(ns("spectrum"), height = "450px", width = "600px"),
+        girafeOutput(ns("scatterplot")),
+
+        plotOutput(ns("spectrum"), width = "100%"),
         fluidRow(class="spectrum_navigation",
-          column(3,
+         div(class="col-md-3 col-sm-6",
             actionButton(ns("previous_car"), "Voriges", inline=T),
             actionButton(ns("next_car"), "Nächstes", inline=T),
           )
@@ -143,7 +144,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
 
 
       validate(
-        need(selected_dot(), "no points selected")
+        need(selected_dot(), "Wählen Sie einen Messpunkt um das Spektrum dazu anzuzeigen.")
       )
 
       #selected_points <- car_detections()[selected$pointNumber,]
@@ -168,7 +169,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
       byte_index <- dbGetQuery(db, str_glue("SELECT * from bin_index WHERE location_id = {location_id()} AND timestamp >= '{start_time}' AND timestamp <= '{end_time}' ORDER BY timestamp;")) %>% tibble
 
       validate(
-        need(nrow(byte_index)>0, "no spectrum data for the selected car detections")
+        need(nrow(byte_index)>0, "Keine Rohdaten vorhanden für die ausgewählte Messung.")
       )
 
       file_ids = byte_index$file_id %>% unique
