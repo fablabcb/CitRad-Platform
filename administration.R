@@ -2,8 +2,6 @@ SERVER_administration <- function(id, userID, db, open_admin_panel){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
-    observe(invalidateLater(1000, cat(".", fill = F)))
-
     #---- detect admin --------
     user_roles <- reactive({
       if(isTruthy(userID())){

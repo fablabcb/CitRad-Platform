@@ -2,11 +2,36 @@ SERVER_show_data <- function(id, db, location_id, show_data){
   moduleServer(id, function(input, output, session){
     ns = session$ns
 
+
+    dates_with_data <- reactive({
+      query <- str_glue("
+                          SELECT
+                            date_trunc('day', timestamp) as day,
+                            count(id)
+                          FROM car_detections
+                          WHERE location_id = {location_id()}
+                          GROUP BY day;")
+
+      dates_with_data <- dbGetQuery(db, query) %>% tibble %>%
+        arrange(day) %>%
+        mutate(diff = c(2, diff(day))) %>%
+        mutate(measurement_start = (diff!=1)) %>%
+        mutate(period = cumsum(measurement_start))
+      return(dates_with_data)
+    })
+
     observeEvent(list(req(location_id()), show_data()), {
       location_details <- dbGetQuery(db, str_glue("SELECT street_name FROM sensor_locations WHERE id = '{location_id()}';"))
 
-      query <- str_glue("SELECT date_trunc('day', timestamp) as day, count(id) FROM car_detections WHERE location_id = {location_id()} GROUP BY day;")
-      dates_with_data <- dbGetQuery(db, query) %>% tibble
+      if(nrow(dates_with_data())==0){
+        showNotification("Zu diesem Standort wurden noch keine Daten hochgeladen.")
+        return()
+      }
+      dates <- dates_with_data() %>%
+        filter(measurement_start) %>%
+        pull(day) %>%
+        sort(decreasing=T)
+
 
       group <- function(x){
         div(class="col-lg-2 col-md-4", x)
@@ -18,7 +43,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
 
 
         fluidRow(
-          div(class="col-lg-3 col-md-6", selectInput(ns("date"), label = "Messdatum", choices = c(dates_with_data$day))),
+          div(class="col-lg-3 col-md-6", selectInput(ns("date"), label = "Messdatum", choices = c(dates))),
           div(class="col-lg-4 col-md-6", selectInput(ns("car_detections_source"), label="Datenquelle", choices=c("Erkennung auf Gerät"="sensor unit", "Erkennung auf Server"="R script"))),
           div(class="col-lg-2 col-md-4", checkboxInput(ns("heatmap"), label = "Heatmap"))
         ),
@@ -56,22 +81,51 @@ SERVER_show_data <- function(id, db, location_id, show_data){
     })
 
 
+    dates <- reactive({
+      validate(
+        need(dates_with_data(), "Keine Daten zu diesem Standort vorhanden")
+      )
+      selected_period <- dates_with_data() %>%
+        filter(day == req(input$date)) %>%
+        pull(period)
+
+      req(length(selected_period)>0)
+
+      dates <- dates_with_data() %>%
+        filter(period == selected_period) %>%
+        pull(day) %>%
+        range()
+
+      return(dates)
+    })
+
     car_detections <- reactive({
-      query <- str_glue("SELECT * FROM car_detections WHERE location_id = {location_id()} AND date_trunc('day', timestamp) = '{input$date}' AND source = '{input$car_detections_source}' ORDER BY timestamp;")
+      dates()
+      query <- str_glue("
+                        SELECT * FROM car_detections
+                        WHERE location_id = {location_id()}
+                        AND date_trunc('day', timestamp) >= '{dates()[1]}'
+                        AND date_trunc('day', timestamp) <= '{dates()[2]}'
+                        AND source = '{input$car_detections_source}'
+                        ORDER BY timestamp;")
       dbGetQuery(db, query) %>% tibble
     })
 
     bin_file_timespans <- reactive({
-      query <- str_glue("SELECT id, filename, start_time, end_time from file_uploads where filetype = 'spectrum' AND (date_trunc('day', start_time) = '{input$date}' OR date_trunc('day', end_time) = '{input$date}');")
+      query <- str_glue("
+                        SELECT id, filename, start_time, end_time from file_uploads
+                        WHERE filetype = 'spectrum'
+                        AND location_id = {location_id()}
+                        AND (
+                          (date_trunc('day', start_time) >= '{dates()[1]}' AND date_trunc('day', start_time) <= '{dates()[2]}')
+                        OR (date_trunc('day', end_time) >= '{dates()[1]}' AND date_trunc('day', end_time) <= '{dates()[2]}')
+                        );
+                      ")
       dbGetQuery(db, query) %>% tibble
     })
 
 
     output$scatterplot <- renderGirafe({
-      validate(
-        need(nrow(car_detections())>0, "Keine Daten zu diesem Standort vorhanden")
-      )
-
       direction = location_details()$direction
 
       scatterplot <- car_detections() %>%
@@ -135,6 +189,7 @@ SERVER_show_data <- function(id, db, location_id, show_data){
     })
 
     selected_points <- reactive({
+      req(selected_dot()<=nrow(car_detections()))
       points <- car_detections()[selected_dot(),]
       updateNumericInput(session, "speed_correction", value =  points$medianSpeed)
       return(points)
@@ -154,11 +209,14 @@ SERVER_show_data <- function(id, db, location_id, show_data){
       start_time <- min(selected_points()$timestamp) - seconds(20)
       end_time <- max(selected_points()$timestamp) + seconds(20)
 
-
       byte_index <- dbGetQuery(db, str_glue("SELECT * from bin_index WHERE location_id = {location_id()} AND timestamp >= '{start_time}' AND timestamp <= '{end_time}' ORDER BY timestamp;")) %>% tibble
 
+      validate(
+        need(nrow(byte_index)>0, "Keine Rohdaten vorhanden für die ausgewählte Messung.")
+      )
+
       hann_window <- selected_points()$hann_window
-      if(is.na(hann_window)) hann_window <- 31
+      if(is.null(hann_window) || is.na(hann_window)) hann_window <- 31
       if(!selected_points()$isForward) hann_window <- 0
 
       corrected_detection_time <- byte_index$timestamp[which(selected_points()$milliseconds == byte_index$milliseconds)- hann_window]
